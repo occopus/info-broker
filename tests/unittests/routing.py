@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import occo.infobroker as ib
-import dateutile.tz as tz
+import dateutil.tz as tz
 import datetime
 import unittest
 
