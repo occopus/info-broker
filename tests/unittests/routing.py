@@ -8,13 +8,13 @@ import unittest
 @ib.provider
 class TestProviderA(ib.InfoProvider):
     @ib.provides("global.brokertime.utc")
-    def getutc(**kwargs):
+    def getutc(self, **kwargs):
         return 'UTC %s'%datetime.datetime.utcnow().isoformat()
     @ib.provides("global.brokertime")
-    def gettime(**kwargs):
+    def gettime(self, **kwargs):
         return 'BT %s'%datetime.datetime.now(tz.tzlocal()).isoformat()
     @ib.provides("global.echo")
-    def echo(**kwargs):
+    def echo(self, **kwargs):
         return kwargs['msg']
 
 class BasicProviderTest(unittest.TestCase):
