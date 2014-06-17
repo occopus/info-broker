@@ -10,7 +10,7 @@ setuptools.setup(
     version='0.1.0',
     author='Adam Visegradi',
     author_email='adam.visegradi@sztaki.mta.hu',
-    packages=setuptools.find_packages(exclude=['tests']),
+    packages=['occo', 'occo.infobroker'],
 #    scripts=['bin/stowe-towels.py','bin/wash-towels.py'],
     url='http://www.lpds.sztaki.hu/',
     license='LICENSE.txt',
