@@ -34,8 +34,8 @@ class BasicProviderTest(unittest.TestCase):
         self.assertEqual(self.provider.get("global.brokertime.utc")[0:3], 'UTC',
                          'Getting global.brokertime.utc failed')
     def test_knf(self):
-        self.assertEqual(self.provider.get('non.existent.key.asdfg'), 0,
-                         'This test shoudl fail')
+        with self.assertRaises(KeyError):
+            self.provider.get('non.existent.key.asdfg')
 
 class ProviderTestSuite(unittest.TestSuite):
     def __init__(self):
