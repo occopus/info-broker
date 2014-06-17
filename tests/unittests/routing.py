@@ -6,8 +6,8 @@ import datetime
 import unittest
 
 @ib.provider
-class TestProviderA(ib.Provider):
-    @ip.provides("global.brokertime.utc")
+class TestProviderA(ib.InfoProvider):
+    @ib.provides("global.brokertime.utc")
     def getutc(**kwargs):
         return 'UTC %s'%datetime.datetime.utcnow().isoformat()
     @ib.provides("global.brokertime")
