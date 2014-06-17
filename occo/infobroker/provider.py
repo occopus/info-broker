@@ -3,6 +3,7 @@
 __all__ = ['provider', 'provides', 'InfoProvider', 'InfoRouter']
 
 from inspect import getmembers
+from functools import wraps
 
 class Provides(object):
     """Method decorator that marks methods to be gathered by @provider.
