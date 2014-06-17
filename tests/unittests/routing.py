@@ -18,11 +18,8 @@ class TestProviderA(ib.InfoProvider):
         return kwargs['msg']
 
 class BasicProviderTest(unittest.TestCase):
-    def __init__(self, provider_class, method_name):
-        self.provider_class = provider_class
-        super(BasicProviderTest, self).__init__(method_name)
     def setUp(self):
-        self.provider = self.provider_class()
+        self.provider = TestProviderA()
     def test_bootstrap(self):
         msg = 'testtesttest'
         self.assertEqueal(self.provider.get("global.echo", msg), msg,
