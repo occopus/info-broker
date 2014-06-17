@@ -82,7 +82,7 @@ class InfoProvider(object):
         """
         if not self._can_immediately_get(key):
             raise KeyError(self.__class__.__name__, key)
-        return self.__class__.providers[key](**kwargs)
+        return self.__class__.providers[key](self, **kwargs)
     def _can_immediately_get(self, key):
         """Implementation of can_get().
 
