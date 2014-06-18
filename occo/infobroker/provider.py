@@ -5,6 +5,7 @@ __all__ = ['provider', 'provides', 'InfoProvider', 'InfoRouter',
 
 from inspect import getmembers
 from functools import wraps
+import itertools as it
 
 class KeyNotFoundError(KeyError):
     """Thrown by `get` functions when a given key cannot be handled."""
@@ -69,6 +70,15 @@ class InfoProvider(object):
         """
         return self._can_immediately_get(key)
 
+    @property
+    def iterkeys(self):
+        """An iterator of the keys that can be handled by this instance."""
+        return self.__class__.providers.iterkeys()
+    @property
+    def keys(self):
+        """A list of keys that can be handled by this instance."""
+        return list(self.iterkeys())
+
     # Trivial context management is supported by the InfoProvider to be
     # forward-compatible with actual information providers that use resources.
     def __enter__(self):
@@ -131,3 +141,8 @@ class InfoRouter(InfoProvider):
             return responsible.get(key, **kwargs)
     def can_get(self, key):
         return self._find_responsible(key) is not None
+    @property
+    def iterkeys(self):
+        """An iterator of the keys that can be handled by this instance."""
+        return it.chain(i.iterkeys() for i in (it.chain([self],
+                                                        self.sub_providers)))
