@@ -108,19 +108,15 @@ class InfoRouter(InfoProvider):
         # list is empty/unspecified.
         config.setdefault('sub_providers', [])
 
-        super(InfoRouter, self).__init__(self, **config)
-
-    @property
-    def _providers(self):
-        """List of all providers, with `self' as the first element."""
-        yield self
-        for i in self.sub_providers:
-            yield i
+        super(InfoRouter, self).__init__(**config)
 
     def _find_responsible(self, key):
         """Return the first provider that can handle the request; or None."""
         try:
-            return next(i for i in self._providers if i.can_get(key))
+            if self._can_immediately_get(key):
+                return self
+            else:
+                return next(i for i in self.sub_providers if i.can_get(key))
         except StopIteration:
             return None
 
