@@ -34,6 +34,9 @@ def Provider(cls):
 
     These methods are gathered into the decorated class).providers dictionary.
 
+    A YAML constructor will also be registered for the decorated class, so it
+    can be instantiated automatically by yaml.load()
+
     """
 
     def yaml_constructor(loader, node):
