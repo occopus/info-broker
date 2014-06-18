@@ -37,12 +37,8 @@ def Provider(cls):
     """
 
     def yaml_constructor(loader, node):
-        newinst = cls.__new__(cls)
-        if type(node) is yaml.ScalarNode:
-            newinst.__init__()
-        else:
-            newinst.__init__(**loader.construct_mapping(node))
-        return newinst
+        return cls() if type(node) is yaml.ScalarNode \
+            else cls(**loader.construct_mapping(node, deep=True))
     yaml.add_constructor('!%s'%cls.__name__, yaml_constructor)
 
     cls.providers=dict((i[1].provided_key, i[1])
