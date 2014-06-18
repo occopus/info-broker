@@ -24,14 +24,8 @@ class Provides(object):
     def __init__(self, key):
         self.key = key
     def __call__(self, f):
-        @wraps(f)
-        def info_provider(self, *args, **kwargs):
-            return f(self, *args, **kwargs)
-        info_provider.provided_key = self.key
-        return info_provider
-    def __get__(self, instance, owner):
-        print '__get__:'
-        print self, instance, owner
+        f.provided_key = self.key
+        return f
 provides = Provides
 
 def Provider(cls):
