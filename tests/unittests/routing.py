@@ -36,12 +36,11 @@ class BasicProviderTest(unittest.TestCase):
 
 class ProviderTestSuite(unittest.TestSuite):
     def __init__(self):
-        def addtest(n):
-            self.addTest(BasicProviderTest(TestProviderA), n)
-        map(addtest, ['test_bootstrap',
-                      'test_order_1',
-                      'test_order_2',
-                      'test_knf'])
+        unittest.TestSuite.__init__(self,
+                                    map(BasicProviderTest, ['test_bootstrap',
+                                                            'test_order_1',
+                                                            'test_order_2',
+                                                            'test_knf']))
 
 if __name__ == '__main__':
     unittest.main()
