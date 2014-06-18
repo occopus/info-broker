@@ -1,0 +1,4 @@
+--- !TestRouter
+sub_providers:
+    - !TestProviderA
+    - !TestProviderB
