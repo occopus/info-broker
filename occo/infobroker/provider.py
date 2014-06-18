@@ -79,7 +79,7 @@ class InfoProvider(object):
         return self._can_immediately_get(key)
 
     def __str__(self):
-        return '%s %r'%(self.__class__.__name__, self.keys)
+        return '%s %s'%(self.__class__.__name__, self.keys)
 
     @property
     def iterkeys(self):
@@ -145,9 +145,9 @@ class InfoRouter(InfoProvider):
             return None
 
     def __str__(self):
-        return '%s %r {%r}'%(self.__class__.__name__,
+        return '%s %s + [%s]'%(self.__class__.__name__,
                              self.keys,
-                             self.sub_providers)
+                             ', '.join(it.imap(str, self.sub_providers)))
 
     def get(self, key, **kwargs):
         responsible = self._find_responsible(key)
