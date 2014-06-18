@@ -8,7 +8,8 @@ class ProviderLoadTest(unittest.TestCase):
     def test_load(self):
         with open('test_router.yaml') as f:
             provider = yaml.load(f)
-        self.assertEqual(provider, TestRouter,
+        ethalon = TestRouter(sub_providers=[TestProviderA(), TestProviderB()])
+        self.assertEqual(provider, ethalon,
                          'Loading failed')
 
 class ProviderLoadTestSuite(unittest.TestSuite):
