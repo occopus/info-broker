@@ -144,5 +144,6 @@ class InfoRouter(InfoProvider):
     @property
     def iterkeys(self):
         """An iterator of the keys that can be handled by this instance."""
-        return it.chain(i.iterkeys for i in (it.chain([self],
-                                                      self.sub_providers)))
+        mykeys = super(InfoRouter, self).iterkeys
+        sub_keys = (i.iterkeys for i in self.sub_providers)
+        return it.chain.from_iterable(it.chain(mykeys, sub_keys))

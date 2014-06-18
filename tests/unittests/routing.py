@@ -29,6 +29,7 @@ class TestProviderB(ib.InfoProvider):
     def anotherecho(self, **kwargs):
         return 'HELLO %s'%kwargs['msg']
 
+@ib.provider
 class TestRouter(ib.InfoRouter):
     pass
 
