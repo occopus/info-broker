@@ -5,6 +5,9 @@ import dateutil.tz as tz
 import datetime
 import unittest
 
+PROVIDED_A = ['global.brokertime.utc', 'global.brokertime', 'global.echo']
+PROVIDED_B = ['global.hello', 'global.echo']
+
 @ib.provider
 class TestProviderA(ib.InfoProvider):
     @ib.provides("global.brokertime.utc")
@@ -46,6 +49,9 @@ class BasicProviderTest(unittest.TestCase):
         with self.assertRaises(ib.KeyNotFoundError):
             self.provider.get('non.existent.key.asdfg')
 
+    def test_keys(self):
+        self.assertEqual(self.provider.keys(), PROVIDES_A)
+
 class RouterTest(unittest.TestCase):
     def setUp(self):
         self.provider = TestRouter(sub_providers=[TestProviderA(),
@@ -63,11 +69,11 @@ class RouterTest(unittest.TestCase):
 
 class ProviderTestSuite(unittest.TestSuite):
     def __init__(self):
-        unittest.TestSuite.__init__(self,
-                                    map(BasicProviderTest, ['test_bootstrap',
-                                                            'test_order_1',
-                                                            'test_order_2',
-                                                            'test_knf']))
+        unittest.TestSuite.__init__(
+            self, map(BasicProviderTest, ['test_bootstrap',
+                                          'test_order_1', 'test_order_2',
+                                          'test_knf',
+                                          'test_keys']))
 class RouterTestSuite(unittest.TestSuite):
     def __init__(self):
         unittest.TestSuite.__init__(self,
