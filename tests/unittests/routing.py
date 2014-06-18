@@ -50,7 +50,7 @@ class BasicProviderTest(unittest.TestCase):
             self.provider.get('non.existent.key.asdfg')
 
     def test_keys(self):
-        self.assertEqual(self.provider.keys(), PROVIDES_A)
+        self.assertEqual(self.provider.keys, PROVIDES_A)
 
 class RouterTest(unittest.TestCase):
     def setUp(self):

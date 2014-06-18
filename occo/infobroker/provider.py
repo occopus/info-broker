@@ -77,7 +77,7 @@ class InfoProvider(object):
     @property
     def keys(self):
         """A list of keys that can be handled by this instance."""
-        return list(self.iterkeys())
+        return list(self.iterkeys)
 
     # Trivial context management is supported by the InfoProvider to be
     # forward-compatible with actual information providers that use resources.
@@ -144,5 +144,5 @@ class InfoRouter(InfoProvider):
     @property
     def iterkeys(self):
         """An iterator of the keys that can be handled by this instance."""
-        return it.chain(i.iterkeys() for i in (it.chain([self],
-                                                        self.sub_providers)))
+        return it.chain(i.iterkeys for i in (it.chain([self],
+                                                      self.sub_providers)))
