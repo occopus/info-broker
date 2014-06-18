@@ -108,7 +108,7 @@ class InfoRouter(InfoProvider):
         # list is empty/unspecified.
         config.setdefault('sub_providers', [])
 
-        super(InfoRouter, self).__init__(self, **config)
+        super(InfoRouter, self).__init__(**config)
 
     @property
     def _providers(self):
