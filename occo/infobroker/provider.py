@@ -26,8 +26,8 @@ class Provides(object):
 provides = Provides
 
 def Provider(cls):
-    """Class decorator that gathers all methods of the class that are marked with a
-    provided_key.
+    """Class decorator that gathers all methods of the class that are marked
+    with a provided_key.
 
     These methods are gathered into the decorated class).providers dictionary.
 
