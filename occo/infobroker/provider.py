@@ -1,11 +1,10 @@
-#!/dev/null
-
 __all__ = ['provider', 'provides', 'InfoProvider', 'InfoRouter',
            'KeyNotFoundError', 'ArgumentError']
 
 from inspect import getmembers
 from functools import wraps
 import itertools as it
+import yaml
 
 class KeyNotFoundError(KeyError):
     """Thrown by `get` functions when a given key cannot be handled."""
@@ -36,6 +35,11 @@ def Provider(cls):
     These methods are gathered into the decorated class).providers dictionary.
 
     """
+
+    def yaml_constructor(loader, node):
+        return cls() if type(node) is yaml.ScalarNode \
+            else cls(**loader.construct_mapping(node, deep=True))
+    yaml.add_constructor('!%s'%cls.__name__, yaml_constructor)
 
     cls.providers=dict((i[1].provided_key, i[1])
                        for i in getmembers(cls)
@@ -69,6 +73,9 @@ class InfoProvider(object):
 
         """
         return self._can_immediately_get(key)
+
+    def __str__(self):
+        return '%s %s'%(self.__class__.__name__, self.keys)
 
     @property
     def iterkeys(self):
@@ -132,6 +139,11 @@ class InfoRouter(InfoProvider):
                 return next(i for i in self.sub_providers if i.can_get(key))
         except StopIteration:
             return None
+
+    def __str__(self):
+        return '%s %s + [%s]'%(self.__class__.__name__,
+                             self.keys,
+                             ', '.join(it.imap(str, self.sub_providers)))
 
     def get(self, key, **kwargs):
         responsible = self._find_responsible(key)
