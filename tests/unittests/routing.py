@@ -6,7 +6,7 @@ import datetime
 import unittest
 
 PROVIDED_A = ['global.brokertime.utc', 'global.brokertime', 'global.echo']
-PROVIDED_B = ['global.hello', 'global.echo']
+PROVIDED_B = ['global.echo', 'global.hello']
 
 @ib.provider
 class TestProviderA(ib.InfoProvider):
@@ -68,7 +68,8 @@ class RouterTest(unittest.TestCase):
         self.assertEqual(self.provider.get("global.echo", msg=msg), msg,
                          "Non-unique routing failed")
     def test_keys(self):
-        self.assertEqual(self.provider.keys, PROVIDED_A + PROVIDED_B)
+        self.assertEqual(self.provider.keys,
+                         PROVIDED_A + PROVIDED_B)
 
 class ProviderTestSuite(unittest.TestSuite):
     def __init__(self):
