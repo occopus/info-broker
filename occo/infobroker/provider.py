@@ -1,9 +1,19 @@
 #!/dev/null
 
-__all__ = ['provider', 'provides', 'InfoProvider', 'InfoRouter']
+__all__ = ['provider', 'provides', 'InfoProvider', 'InfoRouter',
+           'KeyNotFoundError', 'ArgumentError']
 
 from inspect import getmembers
 from functools import wraps
+import itertools as it
+
+class KeyNotFoundError(KeyError):
+    """Thrown by `get` functions when a given key cannot be handled."""
+    pass
+
+class ArgumentError(Exception):
+    """Thrown by `get` functions when there is an error in its arguments."""
+    pass
 
 class Provides(object):
     """Method decorator that marks methods to be gathered by @provider.
@@ -15,19 +25,13 @@ class Provides(object):
     def __init__(self, key):
         self.key = key
     def __call__(self, f):
-        @wraps(f)
-        def info_provider(self, *args, **kwargs):
-            return f(self, *args, **kwargs)
-        info_provider.provided_key = self.key
-        return info_provider
-    def __get__(self, instance, owner):
-        print '__get__:'
-        print self, instance, owner
+        f.provided_key = self.key
+        return f
 provides = Provides
 
 def Provider(cls):
-    """Class decorator that gathers all methods of the class that are marked with a
-    provided_key.
+    """Class decorator that gathers all methods of the class that are marked
+    with a provided_key.
 
     These methods are gathered into the decorated class).providers dictionary.
 
@@ -66,6 +70,15 @@ class InfoProvider(object):
         """
         return self._can_immediately_get(key)
 
+    @property
+    def iterkeys(self):
+        """An iterator of the keys that can be handled by this instance."""
+        return self.__class__.providers.iterkeys()
+    @property
+    def keys(self):
+        """A list of keys that can be handled by this instance."""
+        return list(self.iterkeys)
+
     # Trivial context management is supported by the InfoProvider to be
     # forward-compatible with actual information providers that use resources.
     def __enter__(self):
@@ -81,7 +94,7 @@ class InfoProvider(object):
 
         """
         if not self._can_immediately_get(key):
-            raise KeyError(self.__class__.__name__, key)
+            raise KeyNotFoundError(self.__class__.__name__, key)
         return self.__class__.providers[key](self, **kwargs)
     def _can_immediately_get(self, key):
         """Implementation of can_get().
@@ -123,8 +136,14 @@ class InfoRouter(InfoProvider):
     def get(self, key, **kwargs):
         responsible = self._find_responsible(key)
         if responsible is None:
-            raise KeyError(key)
+            raise KeyNotFoundError(key)
         else:
             return responsible.get(key, **kwargs)
     def can_get(self, key):
         return self._find_responsible(key) is not None
+    @property
+    def iterkeys(self):
+        """An iterator of the keys that can be handled by this instance."""
+        mykeys = super(InfoRouter, self).iterkeys
+        sub_keys = (i.iterkeys for i in self.sub_providers)
+        return it.chain.from_iterable(it.chain(mykeys, sub_keys))
