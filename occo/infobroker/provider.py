@@ -78,6 +78,9 @@ class InfoProvider(object):
         """
         return self._can_immediately_get(key)
 
+    def __str__(self):
+        return '%s %r'%(self.__class__.__name__, self.keys)
+
     @property
     def iterkeys(self):
         """An iterator of the keys that can be handled by this instance."""
@@ -140,6 +143,11 @@ class InfoRouter(InfoProvider):
                 return next(i for i in self.sub_providers if i.can_get(key))
         except StopIteration:
             return None
+
+    def __str__(self):
+        return '%s %r {%r}'%(self.__class__.__name__,
+                             self.keys,
+                             self.sub_providers)
 
     def get(self, key, **kwargs):
         responsible = self._find_responsible(key)
