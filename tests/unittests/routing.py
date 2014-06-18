@@ -43,7 +43,7 @@ class BasicProviderTest(unittest.TestCase):
         self.assertEqual(self.provider.get("global.brokertime.utc")[0:3], 'UTC',
                          'Getting global.brokertime.utc failed')
     def test_knf(self):
-        with self.assertRaises(KeyError):
+        with self.assertRaises(ib.KeyNotFoundError):
             self.provider.get('non.existent.key.asdfg')
 
 class RouterTest(unittest.TestCase):

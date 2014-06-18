@@ -1,9 +1,18 @@
 #!/dev/null
 
-__all__ = ['provider', 'provides', 'InfoProvider', 'InfoRouter']
+__all__ = ['provider', 'provides', 'InfoProvider', 'InfoRouter',
+           'KeyNotFoundError', 'ArgumentError']
 
 from inspect import getmembers
 from functools import wraps
+
+class KeyNotFoundError(KeyError):
+    """Thrown by `get` functions when a given key cannot be handled."""
+    pass
+
+class ArgumentError(Exception):
+    """Thrown by `get` functions when there is an error in its arguments."""
+    pass
 
 class Provides(object):
     """Method decorator that marks methods to be gathered by @provider.
@@ -81,7 +90,7 @@ class InfoProvider(object):
 
         """
         if not self._can_immediately_get(key):
-            raise KeyError(self.__class__.__name__, key)
+            raise KeyNotFoundError(self.__class__.__name__, key)
         return self.__class__.providers[key](self, **kwargs)
     def _can_immediately_get(self, key):
         """Implementation of can_get().
@@ -123,7 +132,7 @@ class InfoRouter(InfoProvider):
     def get(self, key, **kwargs):
         responsible = self._find_responsible(key)
         if responsible is None:
-            raise KeyError(key)
+            raise KeyNotFoundError(key)
         else:
             return responsible.get(key, **kwargs)
     def can_get(self, key):
