@@ -66,6 +66,8 @@ class RouterTest(unittest.TestCase):
         msg = 'TTT'
         self.assertEqual(self.provider.get("global.echo", msg=msg), msg,
                          "Non-unique routing failed")
+    def test_keys(self):
+        self.assertEqual(self.provider.keys, PROVIDED_A + PROVIDED_B)
 
 class ProviderTestSuite(unittest.TestSuite):
     def __init__(self):
@@ -76,10 +78,11 @@ class ProviderTestSuite(unittest.TestSuite):
                                           'test_keys']))
 class RouterTestSuite(unittest.TestSuite):
     def __init__(self):
-        unittest.TestSuite.__init__(self,
-                                    map(RouterTest, ['test_route_unique_1',
-                                                     'test_route_unique_2',
-                                                     'test_route_order']))
+        unittest.TestSuite.__init__(
+            self, map(RouterTest, ['test_route_unique_1',
+                                   'test_route_unique_2',
+                                   'test_route_order',
+                                   'test_keys']))
 
 if __name__ == '__main__':
     alltests = unittest.TestSuite([ProviderTestSuite(),
