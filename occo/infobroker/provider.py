@@ -67,9 +67,9 @@ class InfoProvider(object):
         """Initialize the InfoProvider with the given configuration."""
         self.__dict__.update(config)
 
-    def get(self, key, **kwargs):
+    def get(self, key, *args, **kwargs):
         """Try to get the information pertaining to the given key."""
-        return self._immediate_get(key, **kwargs)
+        return self._immediate_get(key, *args, **kwargs)
     def can_get(self, key):
         """Checks whether the given information request can be fulfilled by this
         information provider.
@@ -96,7 +96,7 @@ class InfoProvider(object):
     def __exit__(self, type_, value, tb):
         pass
 
-    def _immediate_get(self, key, **kwargs):
+    def _immediate_get(self, key, *args, **kwargs):
         """Implementation of get().
 
         This method uses the class's `providers' lookup table to fulfill the
@@ -105,7 +105,7 @@ class InfoProvider(object):
         """
         if not self._can_immediately_get(key):
             raise KeyNotFoundError(self.__class__.__name__, key)
-        return self.__class__.providers[key](self, **kwargs)
+        return self.__class__.providers[key](self, *args, **kwargs)
     def _can_immediately_get(self, key):
         """Implementation of can_get().
 
