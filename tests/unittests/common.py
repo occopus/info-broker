@@ -16,8 +16,8 @@ class TestProviderA(ib.InfoProvider):
     def gettime(self, **kwargs):
         return 'BT %s'%datetime.datetime.now(tz.tzlocal()).isoformat()
     @ib.provides("global.echo")
-    def echo(self, **kwargs):
-        return kwargs['msg']
+    def echo(self, msg, **kwargs):
+        return msg
 
 @ib.provider
 class TestProviderB(ib.InfoProvider):

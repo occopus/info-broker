@@ -8,7 +8,7 @@ class BasicProviderTest(unittest.TestCase):
         self.provider = TestProviderA()
     def test_bootstrap(self):
         msg = 'testtesttest'
-        self.assertEqual(self.provider.get("global.echo", msg=msg), msg,
+        self.assertEqual(self.provider.get("global.echo", msg), msg,
                           'Bootstrap failed')
     def test_order_1(self):
         self.assertEqual(self.provider.get("global.brokertime")[0:2], 'BT',
