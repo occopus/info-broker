@@ -32,7 +32,7 @@ def deserialize(cls, repr_):
 
 class Request(object):
     def __init__(self, key, *args, **kwargs):
-        self.key, selg.args, self.kwargs = key, args, kwargs
+        self.key, self.args, self.kwargs = key, args, kwargs
 
 class Response(object):
     def __init__(self, http_code, data):
