@@ -1,26 +1,26 @@
 __all__ = ['provider', 'provides', 'InfoProvider', 'InfoRouter',
            'KeyNotFoundError', 'ArgumentError']
 
+from occo.util import flatten
 from inspect import getmembers
 from functools import wraps
 import itertools as it
 import yaml
 
 class KeyNotFoundError(KeyError):
-    """Thrown by `get` functions when a given key cannot be handled."""
+    """Thrown by ``get`` functions when a given key cannot be handled."""
     pass
 
-class ArgumentError(Exception):
-    """Thrown by `get` functions when there is an error in its arguments."""
+class ArgumentError(ValueError):
+    """Thrown by ``get`` functions when there is an error in its arguments."""
     pass
 
 class Provides(object):
-    """Method decorator that marks methods to be gathered by @provider.
+    """Method decorator that marks methods to be gathered by ``@provider``.
 
-    The method is associated with a key and stored in the class's `providers'
+    The method is associated with a key and stored in the class's ``providers``
     lookup table.
     """
-
     def __init__(self, key):
         self.key = key
     def __call__(self, f):
@@ -30,15 +30,14 @@ provides = Provides
 
 def Provider(cls):
     """Class decorator that gathers all methods of the class that are marked
-    with a provided_key.
+    with ``provides``.
 
-    These methods are gathered into the decorated class).providers dictionary.
+    These methods are gathered into the decorated class's ``providers``
+    dictionary.
 
     A YAML constructor will also be registered for the decorated class, so it
-    can be instantiated automatically by yaml.load()
-
+    can be instantiated automatically by ``yaml.load()``
     """
-
     def yaml_constructor(loader, node):
         return cls() if type(node) is yaml.ScalarNode \
             else cls(**loader.construct_mapping(node, deep=True))
@@ -54,26 +53,26 @@ provider=Provider
 class InfoProvider(object):
     """Abstract implementation of an information provider.
 
-    Sub-classes must be decorated with @provider, and provider methods must be
-    marked with the @provides(<KEY>) decorator. These methods will then be
-    stored in the class object, in a lookup table.
+    Sub-classes must be decorated with ``@provider``, and provider methods must
+    be marked with the ``@provides(<KEY>)`` decorator. These methods will then
+    be stored in the class object, in a lookup table.
 
-    The InfoProvider uses this lookup table to decide whether it can handle a
-    specific request, and to perform it if it can.
-
+    The ``InfoProvider`` uses this lookup table to decide whether it can handle
+    a specific request, and to perform it if it can.
     """
-
     def __init__(self, **config):
         """Initialize the InfoProvider with the given configuration."""
         self.__dict__.update(config)
 
     def get(self, key, *args, **kwargs):
-        """Try to get the information pertaining to the given key."""
+        """Try to get the information pertaining to the given key.
+        
+        Raises: ``KeyNotFoundError`` if the given key is not supported."""
         return self._immediate_get(key, *args, **kwargs)
+
     def can_get(self, key):
         """Checks whether the given information request can be fulfilled by this
         information provider.
-
         """
         return self._can_immediately_get(key)
 
@@ -97,21 +96,19 @@ class InfoProvider(object):
         pass
 
     def _immediate_get(self, key, *args, **kwargs):
-        """Implementation of get().
+        """Direct implementation of get().
 
-        This method uses the class's `providers' lookup table to fulfill the
+        This method uses the class's ``providers`` lookup table to fulfill the
         request.
-
         """
         if not self._can_immediately_get(key):
             raise KeyNotFoundError(self.__class__.__name__, key)
         return self.__class__.providers[key](self, *args, **kwargs)
     def _can_immediately_get(self, key):
-        """Implementation of can_get().
+        """Direct implementation of can_get().
 
-        This method uses the class's `providers' lookup table to determine
+        This method uses the class's ``providers`` lookup table to determine
         whether the request can be fulfilled.
-
         """
         cls = self.__class__
         return hasattr(cls, 'providers') and (key in cls.providers)
@@ -119,29 +116,21 @@ class InfoProvider(object):
 class InfoRouter(InfoProvider):
     """Abstract implementation of a routing information provider.
 
-    This provider stores a list of InfoProviders (sub_providers) that are
-    queried in order to find the one that can fulfill a request. An InfoRouter
-    can itself handle requests; that is, the InfoRouter instance can be
-    considered as the first element in the sub_providers list.
-
+    This provider stores a list of ``InfoProvider``s (sub-providers) that are
+    queried in order to find the one that can fulfill a request. An
+    ``InfoRouter`` can itself handle requests; that is, the InfoRouter instance
+    can be considered as the first element in the sub-providers list.
     """
 
     def __init__(self, **config):
-        # Either this default, or an error can be raised if the sub_providers
-        # list is empty/unspecified.
         config.setdefault('sub_providers', [])
-
         super(InfoRouter, self).__init__(**config)
 
     def _find_responsible(self, key):
         """Return the first provider that can handle the request; or None."""
-        try:
-            if self._can_immediately_get(key):
-                return self
-            else:
-                return next(i for i in self.sub_providers if i.can_get(key))
-        except StopIteration:
-            return None
+        return \
+            self if self._can_immediately_get(key) \
+            else next((i for i in self.sub_providers if i.can_get(key)), None)
 
     def __str__(self):
         return '%s %s + [%s]'%(self.__class__.__name__,
@@ -158,7 +147,6 @@ class InfoRouter(InfoProvider):
         return self._find_responsible(key) is not None
     @property
     def iterkeys(self):
-        """An iterator of the keys that can be handled by this instance."""
         mykeys = super(InfoRouter, self).iterkeys
         sub_keys = (i.iterkeys for i in self.sub_providers)
-        return it.chain.from_iterable(it.chain(mykeys, sub_keys))
+        return flatten(it.chain(mykeys, sub_keys))
