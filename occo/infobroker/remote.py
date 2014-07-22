@@ -27,7 +27,7 @@ class CriticalError(CommunicationError):
 def serialize(obj):
     return yaml.dump(obj)
 
-def deserialize(cls, repr_):
+def deserialize(repr_):
     return yaml.load(repr_)
 
 class Request(object):
@@ -38,12 +38,12 @@ class Response(object):
     def __init__(self, http_code, data):
         self.http_code, self.data = http_code, data
     def check(self):
-        code = response.http_code
+        code = self.http_code
         if code <= 199: raise NotImplementedError()
         elif code <= 299: pass
         elif code <= 399: raise NotImplementedError()
-        elif code <= 499: raise CriticalError(code, response.data)
-        elif code <= 599: raise TransientError(code, response.data)
+        elif code <= 499: raise CriticalError(code, self.data)
+        elif code <= 599: raise TransientError(code, self.data)
         else: raise NotImplementedError()
 class ExceptionResponse(Response):
     def check_error(self):
@@ -66,14 +66,17 @@ class RemoteProviderSkeleton(object):
     def __init__(self, backend_provider, rpc_config):
         self.backend_provider = backend_provider
         self.consumer = comm.EventDrivenConsumer(self.callback, **rpc_config)
+
     def callback(self, msg, *args, **kwargs):
-        req = Request.deserialize(msg)
+        req = deserialize(msg)
         try:
             retval = self.backend_provider.get(req.key, *req.args, **req.kwargs)
         except ib.KeyNotFoundError as e:
             resp = ExceptionResponse(404, e)
         except ib.ArgumentError:
             resp = ExceptionResponse(400, e)
+        except Exception as e:
+            resp = ExceptionResponse(500, e)
         else:
             resp = Response(200, retval)
         return serialize(resp)
