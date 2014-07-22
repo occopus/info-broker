@@ -19,7 +19,7 @@ provider_stub: !RemoteProviderStub
 logging:
     version: 1
     root:
-        level: CRITICAL
+        level: DEBUG
         handlers: [console, file]
     formatters:
         simpleFormater:
@@ -39,7 +39,8 @@ logging:
             filename: rabbit.log
 
     loggers:
-        clogger:
+        occo:
+            propagate: false
             level: DEBUG
             handlers: [console]
         flogger:
