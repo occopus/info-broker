@@ -1,3 +1,9 @@
+#
+# Copyright (C) 2014 MTA SZTAKI
+#
+# Configuration primitives for the SZTAKI Cloud Orchestrator
+#
+
 __all__ = ['provider', 'provides', 'InfoProvider', 'InfoRouter',
            'KeyNotFoundError', 'ArgumentError']
 
@@ -137,12 +143,12 @@ class InfoRouter(InfoProvider):
                              self.keys,
                              ', '.join(it.imap(str, self.sub_providers)))
 
-    def get(self, key, **kwargs):
+    def get(self, key, *args, **kwargs):
         responsible = self._find_responsible(key)
         if responsible is None:
             raise KeyNotFoundError(key)
         else:
-            return responsible.get(key, **kwargs)
+            return responsible.get(key, *args, **kwargs)
     def can_get(self, key):
         return self._find_responsible(key) is not None
     @property

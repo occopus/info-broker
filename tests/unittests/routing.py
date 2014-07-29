@@ -1,4 +1,8 @@
-#!/usr/bin/env python
+#
+# Copyright (C) 2014 MTA SZTAKI
+#
+# Unit tests for the SZTAKI Cloud Orchestrator
+#
 
 import unittest
 from common import *
