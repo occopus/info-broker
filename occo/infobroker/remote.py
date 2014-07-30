@@ -14,7 +14,7 @@ import logging
 
 log = logging.getLogger('occo.infobroker.remote')
 
-class Request(object):
+class InfoProviderRequest(object):
     def __init__(self, key, *args, **kwargs):
         self.key, self.args, self.kwargs = key, args, kwargs
 
@@ -25,7 +25,8 @@ class RemoteProviderStub(ib.InfoProvider):
         self.backend = comm.RPCProducer(**rpc_config)
 
     def get(self, key, *args, **kwargs):
-        return self.backend.push_message(Request(key, *args, **kwargs))
+        return self.backend.push_message(
+            InfoProviderRequest(key, *args, **kwargs))
 
 class RemoteProviderSkeleton(object):
     def __init__(self, backend_provider, rpc_config):
