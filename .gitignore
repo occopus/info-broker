@@ -1,4 +1,6 @@
 MANIFEST
 dist
-InfoBroker.egg-info
+*.egg-info
 *.pyc
+*.swp
+*.log
