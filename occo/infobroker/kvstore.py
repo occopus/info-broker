@@ -35,8 +35,10 @@ class KeyValueStore(factory.MultiBackend):
 
 @factory.register(KeyValueStore, 'dict')
 class DictKVStore(KeyValueStore):
-    def __init__(self, **kwargs):
-        self.backend = dict()
+    def __init__(self, init_dict=None, **kwargs):
+	self.backend = dict()
+	if init_dict is not None:
+	    self.backend.update(init_dict)
 
     def query_item(self, key):
         return self.backend[key]

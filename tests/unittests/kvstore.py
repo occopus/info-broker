@@ -47,6 +47,10 @@ class KVSTest(unittest.TestCase):
         p = kvs.KeyValueStore(protocol='dict')
         p['alma'] = 'korte'
         self.assertTrue('alma' in p)
+    def test_default_dict(self):
+	init_dict = {'alma':'korte', 'medve':'durva'}
+	p = kvs.KeyValueStore(protocol='dict', init_dict=init_dict)
+	self.assertEqual(p['alma'], 'korte')
 
 class ProviderTest(unittest.TestCase):
     def setUp(self):
