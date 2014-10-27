@@ -7,7 +7,7 @@
 __all__ = ['provider', 'provides', 'InfoProvider', 'InfoRouter',
            'KeyNotFoundError', 'ArgumentError', 'logged']
 
-from occo.util import flatten
+from occo.util import flatten, identity
 from inspect import getmembers
 from functools import wraps
 import itertools as it
@@ -35,26 +35,33 @@ class Provides(object):
 provides = Provides
 
 class LoggedProvider(object):
-    def __init__(self, log_method, two_records=False):
+    def __init__(self,
+                 log_method,
+                 two_records=False,
+                 filter_method=identity):
         self.log_method = log_method
         self.two_records = two_records
+        self.filter_method = filter_method
     def __call__(self, fun):
-        if self.two_records:
-            @wraps(fun)
-            def w(_self, *args, **kwargs):
-                self.log_method('querying[%s](%r, %r) => ...',
-                                fun.provided_key, args, kwargs)
-                retval = fun(_self, *args, **kwargs)
-                self.log_method('query_result[%s](%r, %r) => %r',
-                                fun.provided_key, args, kwargs, retval)
-                return retval
-        else:
-            @wraps(fun)
-            def w(_self, *args, **kwargs):
-                retval = fun(_self, *args, **kwargs)
-                self.log_method('query_result[%s](%r, %r) => %r',
-                                fun.provided_key, args, kwargs, retval)
-                return retval
+        # Optimization: accesing locals is
+        # _way_ faster than accesing attributes
+        log_method = self.log_method
+        two_records = self.two_records
+        filter_method = self.filter_method
+        provided_key = fun.provided_key
+
+        @wraps(fun)
+        def w(_self, *args, **kwargs):
+            l_args, l_kwargs = filter_method(args, kwargs)
+            if two_records:
+                log_method( 'querying[%s](%r, %r) => ...',
+                           provided_key, l_args, l_kwargs)
+            retval = fun(_self, *args, **kwargs)
+            l_args, l_kwargs, l_retval = filter_method(args, kwargs, retval)
+            log_method('query_result[%s](%r, %r) => %r',
+                       provided_key, l_args, l_kwargs, l_retval)
+            return retval
+
         return w
 logged = LoggedProvider
 
