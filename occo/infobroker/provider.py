@@ -5,7 +5,7 @@
 #
 
 __all__ = ['provider', 'provides', 'InfoProvider', 'InfoRouter',
-           'KeyNotFoundError', 'ArgumentError']
+           'KeyNotFoundError', 'ArgumentError', 'logged']
 
 from occo.util import flatten
 from inspect import getmembers
@@ -33,6 +33,30 @@ class Provides(object):
         f.provided_key = self.key
         return f
 provides = Provides
+
+class LoggedProvider(object):
+    def __init__(self, log_method, two_records=False):
+        self.log_method = log_method
+        self.two_records = two_records
+    def __call__(self, fun):
+        if self.two_records:
+            @wraps(fun)
+            def w(_self, *args, **kwargs):
+                self.log_method('querying[%s](%r, %r) => ...',
+                                fun.provided_key, args, kwargs)
+                retval = fun(_self, *args, **kwargs)
+                self.log_method('query_result[%s](%r, %r) => %r',
+                                fun.provided_key, args, kwargs, retval)
+                return retval
+        else:
+            @wraps(fun)
+            def w(_self, *args, **kwargs):
+                retval = fun(_self, *args, **kwargs)
+                self.log_method('query_result[%s](%r, %r) => %r',
+                                fun.provided_key, args, kwargs, retval)
+                return retval
+        return w
+logged = LoggedProvider
 
 def Provider(cls):
     """Class decorator that gathers all methods of the class that are marked
