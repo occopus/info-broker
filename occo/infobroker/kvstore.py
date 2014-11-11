@@ -12,6 +12,7 @@ import occo.infobroker as ib
 import occo.util.factory as factory
 import yaml
 import logging
+import threading
 
 log = logging.getLogger('occo.infobroker.kvstore')
 
@@ -36,16 +37,20 @@ class KeyValueStore(factory.MultiBackend):
 @factory.register(KeyValueStore, 'dict')
 class DictKVStore(KeyValueStore):
     def __init__(self, init_dict=None, **kwargs):
-	self.backend = dict()
-	if init_dict is not None:
-	    self.backend.update(init_dict)
+        self.backend = dict()
+        if init_dict is not None:
+            self.backend.update(init_dict)
+        self.lock = threading.Lock()
 
     def query_item(self, key):
-        return self.backend[key]
+        with self.lock:
+            return self.backend[key]
     def set_item(self, key, value):
-        self.backend[key] = value
+        with self.lock:
+            self.backend[key] = value
     def has_key(self, key):
-        return key in self.backend
+        with self.lock:
+            return key in self.backend
 
 @ib.provider
 class KeyValueStoreProvider(ib.InfoProvider):
