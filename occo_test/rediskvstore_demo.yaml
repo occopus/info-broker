@@ -1,4 +1,1 @@
-protocol : dict
-init_dict :
-    alma : korte
-    medve : durva
+protocol : redis
