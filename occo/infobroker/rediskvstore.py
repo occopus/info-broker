@@ -14,51 +14,16 @@ import yaml
 import logging
 import redis
 
-log = logging.getLogger('occo.infobroker.kvstore')
-
-class RedisKeyValueStore(factory.MultiBackend):
-    def __init__(self, **kwargs):
+log = logging.getLogger('occo.infobroker.kvstore.redis')_(self, **kwargs):
         pass
 
-    def query_item(self, key):
-        raise NotImplementedError()
-    def set_item(self, key, value):
-        raise NotImplementedError()
-    def has_key(self, key):
-        raise NotImplementedError()
-
-    def __getitem__(self, key):
-        return self.query_item(key)
-    def __setitem__(self, key, value):
-        return self.set_item(key, value)
-    def __contains__(self, key):
-        return self.has_key(key)
-
-@factory.register(RedisKeyValueStore, 'dict')
-class RedisDictKVStore(RedisKeyValueStore):
-    def __init__(self, init_dict=None, host='localhost', port='6379', **kwargs):
-	self.backend = redis.StrictRedis(host, port, db=0)
-	if init_dict is not None:
-	    for key, value in init_dict.iteritems():
-		self.backend.set(key, value)	
+@factory.register(ib.KeyValueStore, 'redis')
+class RedisKVStore(ib.KeyValueStore):
+    def __init__(self, host='localhost', port='6379', db=0,  **kwargs):
+	self.backend = redis.StrictRedis(host, port, db)
     def query_item(self, key):
         return self.backend.get(key)
     def set_item(self, key, value):
         self.backend.set(key, value)
     def has_key(self, key):
         return self.backend.exists(key)
-
-@ib.provider
-class RedisKeyValueStoreProvider(ib.InfoProvider):
-    def __init__(self, backend):
-        self.backend = backend
-    def get(self, key):
-        if self._can_immediately_get(key):
-            return self._immediate_get(key)
-        else:
-            return self.backend.query_item(key)
-    def can_get(self, key):
-        return self._can_immediately_get(key) or self.backend.has_key(key)
-    @property
-    def iterkeys(self):
-        raise NotImplementedError()
