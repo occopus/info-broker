@@ -8,17 +8,16 @@ __all__ = ['KeyValueStore',
            'KeyValueStoreProvider',
            'DictKVStore']
 
-import occo.infobroker as ib
+import occo.infobroker.kvstore as kvs
 import occo.util.factory as factory
 import yaml
 import logging
 import redis
 
-log = logging.getLogger('occo.infobroker.kvstore.redis')_(self, **kwargs):
-        pass
+log = logging.getLogger('occo.infobroker.kvstore.redis')
 
-@factory.register(ib.KeyValueStore, 'redis')
-class RedisKVStore(ib.KeyValueStore):
+@factory.register(kvs.KeyValueStore, 'redis')
+class RedisKVStore(kvs.KeyValueStore):
     def __init__(self, host='localhost', port='6379', db=0,  **kwargs):
 	self.backend = redis.StrictRedis(host, port, db)
     def query_item(self, key):
