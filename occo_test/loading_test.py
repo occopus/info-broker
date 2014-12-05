@@ -5,12 +5,13 @@
 #
 
 import unittest
+import occo.util as util
 from common import *
 import yaml
 
 class ProviderLoadTest(unittest.TestCase):
     def test_load(self):
-        with open('test_router.yaml') as f:
+        with open(util.rel_to_file('test_router.yaml')) as f:
             provider = yaml.load(f)
         ethalon = TestRouter(sub_providers=[TestProviderA(), TestProviderB()])
         self.assertEqual(str(provider), str(ethalon),
@@ -21,5 +22,3 @@ class ProviderLoadTestSuite(unittest.TestSuite):
         unittest.TestSuite.__init__(
             self, map(ProviderLoadTest, ['test_load'])),
 
-if __name__ == '__main__':
-    unittest.main()

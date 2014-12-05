@@ -44,23 +44,3 @@ class RouterTest(unittest.TestCase):
     def test_keys(self):
         self.assertEqual(self.provider.keys,
                          PROVIDED_A + PROVIDED_B)
-
-class ProviderTestSuite(unittest.TestSuite):
-    def __init__(self):
-        unittest.TestSuite.__init__(
-            self, map(BasicProviderTest, ['test_bootstrap',
-                                          'test_order_1', 'test_order_2',
-                                          'test_knf',
-                                          'test_keys']))
-class RouterTestSuite(unittest.TestSuite):
-    def __init__(self):
-        unittest.TestSuite.__init__(
-            self, map(RouterTest, ['test_route_unique_1',
-                                   'test_route_unique_2',
-                                   'test_route_order',
-                                   'test_keys']))
-
-if __name__ == '__main__':
-    alltests = unittest.TestSuite([ProviderTestSuite(),
-                                   RouterTestSuite()])
-    unittest.main()
