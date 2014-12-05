@@ -97,10 +97,9 @@ class InfoProvider(object):
     The ``InfoProvider`` uses this lookup table to decide whether it can handle
     a specific request, and to perform it if it can.
     """
-    def __init__(self, catch_all=False, **config):
+    def __init__(self, **config):
         """Initialize the InfoProvider with the given configuration."""
         self.__dict__.update(config)
-	self.catch_all = catch_all
 
     def get(self, key, *args, **kwargs):
         """Try to get the information pertaining to the given key.
@@ -149,8 +148,7 @@ class InfoProvider(object):
         whether the request can be fulfilled.
         """
         cls = self.__class__
-        return self.catch_all \
-	       or (hasattr(cls, 'providers') and (key in cls.providers))
+        return hasattr(cls, 'providers') and (key in cls.providers)
 
 class InfoRouter(InfoProvider):
     """Abstract implementation of a routing information provider.

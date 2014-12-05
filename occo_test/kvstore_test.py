@@ -13,7 +13,7 @@ import threading
 import logging.config
 import uuid
 
-with open('test_kvstore.yaml') as f:
+with open(util.rel_to_file('test_kvstore.yaml')) as f:
     cfg = config.DefaultYAMLConfig(f)
 
 logging.config.dictConfig(cfg.logging)
@@ -64,7 +64,3 @@ class ProviderTest(unittest.TestCase):
 #    def test_dict_haskey(self):
 #        self.p['alma'] = 'korte'
 #        self.assertTrue('alma' in self.p)
-
-
-if __name__ == '__main__':
-    unittest.main()

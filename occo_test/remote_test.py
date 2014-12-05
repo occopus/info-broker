@@ -12,8 +12,9 @@ import occo.infobroker.remote as rib
 import threading
 import logging.config
 import uuid
+import occo.util as util
 
-with open('test_remote.yaml') as f:
+with open(util.rel_to_file('test_remote.yaml')) as f:
     cfg = config.DefaultYAMLConfig(f)
 
 logging.config.dictConfig(cfg.logging)
@@ -47,6 +48,3 @@ class RouterTest(unittest.TestCase):
                 self.cancel.set()
                 self.server.join()
 
-
-if __name__ == '__main__':
-    unittest.main()
