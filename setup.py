@@ -1,6 +1,7 @@
 #!/usr/bin/env -e python
 
 import setuptools
+import os, sys
 from pip.req import parse_requirements
 
 reqs = [ str(i.req) for i in parse_requirements('requirements.txt') ]
@@ -12,7 +13,8 @@ setuptools.setup(
     author_email='adam.visegradi@sztaki.mta.hu',
     namespace_packages=['occo'],
     packages=['occo.infobroker'],
-#    scripts=['bin/stowe-towels.py','bin/wash-towels.py'],
+    scripts=['src/infobroker.py'],
+    data_files=[(os.path.join(sys.prefix, 'etc/occo'),['src/infobroker.yaml'])],
     url='http://www.lpds.sztaki.hu/',
     license='LICENSE.txt',
     description='Information Broker',

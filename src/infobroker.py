@@ -2,16 +2,26 @@ import yaml
 import occo.infobroker.kvstore as kvs
 import occo.infobroker.rediskvstore as rkvs
 import occo.infobroker.remote as rib
+import occo.util.config as config
 import threading
 import occo.util as util
+import logging
+import logging.config
+import os
 
-data=""
 with open(util.cfg_file_path("infobroker.yaml"), 'r') as stream:
-    data=yaml.load(stream)
-uds = kvs.KeyValueStore(protocol=data['protocol'])
-ib=kvs.KeyValueStoreProvider(uds)
-cfg = {'protocol':'amqp', 'host':'c153-33.localcloud', 'vhost':'test', 'exchange':'', 'user':'test', 'password':'test', 'queue':'remote_ibprovider_test', 'cancel_event':threading.Event()}
-skel=rib.RemoteProviderSkeleton(ib,cfg)
-with skel.consumer:
-    skel.consumer.start_consuming()
+    data=config.DefaultYAMLConfig(stream)
 
+logging.config.dictConfig(data.logging)
+
+log=logging.getLogger("occo.infobroker_service")
+log.debug("pid: %d", os.getpid())
+uds = kvs.KeyValueStore(protocol=data.backend_config['protocol'])
+ib=kvs.KeyValueStoreProvider(uds)
+data.server_mqconfig['cancel_event']=threading.Event()
+skel=rib.RemoteProviderSkeleton(ib,data.server_mqconfig)
+log.debug("connecting")
+with skel.consumer:
+    log.debug("connected")
+    skel.consumer.start_consuming()
+    log.debug("consuming done")
