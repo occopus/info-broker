@@ -84,3 +84,20 @@ class DictUDS(UDS):
         self.kvstore.set_item(infra_key, infra_state)
     def remove_node(self, infra_id, node_name, instance_id):
         pass
+
+@factory.register(UDS, 'redis')
+class DictUDS(UDS):
+    def add_infrastructure(self, static_description):
+        self.kvstore.set_item(self.infra_key(static_description.infra_id, False),
+                              static_description)
+    def remove_infrastructure(self, infra_id):
+        pass
+    def register_started_node(self, infra_id, node_name, instance_data):
+        node_id = instance_data['node_id']
+        infra_key = self.infra_key(infra_id, True)
+        infra_state = self.infra_state(infra_id)
+        node_list = infra_state.setdefault(node_name, dict())
+        node_list[node_id] = instance_data
+        self.kvstore.set_item(infra_key, infra_state)
+    def remove_node(self, infra_id, node_name, instance_id):
+        pass
