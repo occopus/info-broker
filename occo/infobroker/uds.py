@@ -65,7 +65,7 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
         raise NotImplementedError()
     def register_started_node(self, infra_id, node_id, instance_data):
         raise NotImplementedError()
-    def remove_node(self, infra_id, node_id, instance_id):
+    def remove_node(self, infra_id, node_name, instance_id):
         raise NotImplementedError()
 
 @factory.register(UDS, 'dict')
@@ -75,12 +75,12 @@ class DictUDS(UDS):
                               static_description)
     def remove_infrastructure(self, infra_id):
         pass
-    def register_started_node(self, infra_id, node_id, instance_data):
-        instance_id = instance_data['instance_id']
+    def register_started_node(self, infra_id, node_name, instance_data):
+        node_id = instance_data['node_id']
         infra_key = self.infra_key(infra_id, True)
         infra_state = self.infra_state(infra_id)
-        node_list = infra_state.setdefault(node_id, dict())
-        node_list[instance_id] = instance_data
+        node_list = infra_state.setdefault(node_name, dict())
+        node_list[node_id] = instance_data
         self.kvstore.set_item(infra_key, infra_state)
-    def remove_node(self, infra_id, node_id, instance_id):
+    def remove_node(self, infra_id, node_name, instance_id):
         pass
