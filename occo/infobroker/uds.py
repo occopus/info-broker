@@ -55,9 +55,13 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
     @ib.provides('infrastructure.dynamic_state')
     def infra_state(self, infra_id, **kwargs):
         try:
-            return self.get_infra(infra_id, True)
+            retval = self.get_infra(infra_id, True)
         except KeyError:
             return dict()
+        else:
+            return \
+                retval if retval \
+                else dict()
 
     def add_infrastructure(self, static_description):
         raise NotImplementedError()
