@@ -48,6 +48,7 @@ class UDS(ib.InfoProvider):
     @ib.provides('infrastructure.static_description')
     def infra_descr(self, infra_id, **kwargs):
         return self.get_infra(infra_id)
+
     @ib.provides('infrastructure.dynamic_state')
     def infra_descr(self, infra_id, **kwargs):
         return self.get_infra(infra_id)
