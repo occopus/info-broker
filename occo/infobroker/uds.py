@@ -6,15 +6,17 @@
 
 __all__ = ['UDS']
 
+import occo.util.factory as factory
 import occo.infobroker as ib
+from occo.infobroker.kvstore import KeyValueStore
 import logging
 
 log = logging.getLogger('occo.infobroker.uds')
 
 @ib.provider
-class UDS(ib.InfoProvider):
-    def __init__(self, kvstore):
-        self.kvstore = kvstore
+class UDS(ib.InfoProvider, factory.MultiBackend):
+    def __init__(self, **backend_config):
+        self.kvstore = KeyValueStore(**backend_config)
 
     def infra_key(self, infra_id):
         return 'infra:{0!s}'.format(infra_id)
@@ -54,12 +56,22 @@ class UDS(ib.InfoProvider):
         return self.get_infra(infra_id)
 
     def add_infrastructure(self, static_description):
+        raise NotImplementedError()
+    def remove_infrastructure(self, infra_id):
+        raise NotImplementedError()
+    def register_started_node(self, infra_id, node_id, instance_data):
+        raise NotImplementedError()
+    def remove_node(self, infra_id, node_id, instance_id):
+        raise NotImplementedError()
+
+@factory.register(UDS, 'dict')
+class DictUDS(UDS):
+    def add_infrastructure(self, static_description):
         self.kvstore.set_item(self.infra_key(static_description.infra_id),
                               static_description)
     def remove_infrastructure(self, infra_id):
         pass
     def register_started_node(self, infra_id, node_id, instance_data):
-        instance_id = instance_data.instance_id
         pass
     def remove_node(self, infra_id, node_id, instance_id):
         pass
