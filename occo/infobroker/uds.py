@@ -18,10 +18,11 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
     def __init__(self, **backend_config):
         self.kvstore = KeyValueStore(**backend_config)
 
-    def infra_key(self, infra_id):
-        return 'infra:{0!s}'.format(infra_id)
-    def get_infra(self, infra_id):
-        return self.kvstore.query_item(self.infra_key(infra_id))
+    def infra_key(self, infra_id, dynamic):
+        return 'infra:{0!s}{1!s}'.format(infra_id,
+                                         ':state' if dynamic else '')
+    def get_infra(self, infra_id, dynamic):
+        return self.kvstore.query_item(self.infra_key(infra_id, dynamic))
 
     def auth_data_key(self, backend_id, user_id):
         return 'auth:{0!s}:{1!s}'.format(backend_id, user_id)
@@ -45,15 +46,15 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
 
     @ib.provides('infrastructure.name')
     def infra_name(self, infra_id, **kwargs):
-        return self.get_infra(infra_id).name
+        return self.get_infra(infra_id, False).name
 
     @ib.provides('infrastructure.static_description')
     def infra_descr(self, infra_id, **kwargs):
-        return self.get_infra(infra_id)
+        return self.get_infra(infra_id, False)
 
     @ib.provides('infrastructure.dynamic_state')
     def infra_state(self, infra_id, **kwargs):
-        return self.get_infra(infra_id)
+        return self.get_infra(infra_id, True)
 
     def add_infrastructure(self, static_description):
         raise NotImplementedError()
@@ -67,7 +68,7 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
 @factory.register(UDS, 'dict')
 class DictUDS(UDS):
     def add_infrastructure(self, static_description):
-        self.kvstore.set_item(self.infra_key(static_description.infra_id),
+        self.kvstore.set_item(self.infra_key(static_description.infra_id, False),
                               static_description)
     def remove_infrastructure(self, infra_id):
         pass
