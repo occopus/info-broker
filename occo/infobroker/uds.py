@@ -15,8 +15,9 @@ log = logging.getLogger('occo.infobroker.uds')
 
 @ib.provider
 class UDS(ib.InfoProvider, factory.MultiBackend):
-    def __init__(self, **backend_config):
+    def __init__(self, info_broker, **backend_config):
         self.kvstore = KeyValueStore(**backend_config)
+        self.ib = info_broker
 
     def infra_key(self, infra_id, dynamic):
         return 'infra:{0!s}{1!s}'.format(infra_id,
@@ -56,6 +57,10 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
     def infra_state(self, infra_id, **kwargs):
         try:
             retval = self.get_infra(infra_id, True)
+            for node in retval.iteritems():
+                for instance in nodes.iteritems():
+                    instance.state = self.ib.get('node.state',
+                                                 instance['node_id'])
         except KeyError:
             return dict()
         else:
