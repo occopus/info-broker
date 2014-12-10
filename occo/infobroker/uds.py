@@ -56,6 +56,10 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
     def infra_descr(self, infra_id, **kwargs):
         return self.get_infra(infra_id, False)
 
+    @ib.provides('node.state')
+    def get_node_state(self, node_id):
+        return 'running?'
+
     @ib.provides('infrastructure.dynamic_state')
     def infra_state(self, infra_id, **kwargs):
         try:
