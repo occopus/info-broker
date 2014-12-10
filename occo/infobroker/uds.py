@@ -60,8 +60,8 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
     def infra_state(self, infra_id, **kwargs):
         try:
             retval = self.get_infra(infra_id, True)
-            for node in retval.iteritems():
-                for instance in nodes.iteritems():
+            for node in retval.itervalues():
+                for instance in node.itervalues():
                     instance.state = self.ib.get('node.state',
                                                  instance['node_id'])
         except KeyError:
