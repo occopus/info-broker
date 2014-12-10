@@ -32,9 +32,12 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
 
     def node_def_key(self, node_type):
         return 'node_def:{0!s}'.format(node_type)
-    @ib.provides('node_definition')
-    def nodedef(self, node_type):
+    @ib.provides('node.definition.all')
+    def all_nodedef(self, node_type):
         return self.kvstore.query_item(self.node_def_key(node_type))
+    @ib.provides('node.definition')
+    def nodedef(self, node_type, preselected_backend_id=None):
+        return self.get_one_definition(node_type, preselected_backend_id)
 
     @ib.provides('backends.auth_data')
     def auth_data(self, backend_id, user_id):
@@ -68,6 +71,14 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
                 retval if retval \
                 else dict()
 
+    def get_one_definition(self, node_type, preselected_backend_id):
+        all_definitions = self.all_nodedef(node_type)
+        if preselected_backend_id:
+            return next(i for i in all_definitions
+                        if i['backend_id'] == preselected_backend_id)
+        else:
+            import random
+            return random.choice(all_definitions)
     def add_infrastructure(self, static_description):
         raise NotImplementedError()
     def remove_infrastructure(self, infra_id):
@@ -96,6 +107,10 @@ class DictUDS(UDS):
 
 @factory.register(UDS, 'redis')
 class DictUDS(UDS):
+    def get_one_definition(self, node_type, preselected_backend_id):
+        # TODO implement exploiting redis features
+        pass
+
     def add_infrastructure(self, static_description):
         self.kvstore.set_item(self.infra_key(static_description.infra_id, False),
                               static_description)
