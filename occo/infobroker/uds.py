@@ -71,8 +71,8 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
         else:
             for node in retval.itervalues():
                 for instance in node.itervalues():
-                    instance.state = self.ib.get('node.state',
-                                                 instance['node_id'])
+                    instance['state'] = self.ib.get('node.state',
+                                                    instance['node_id'])
             return retval
 
     def get_one_definition(self, node_type, preselected_backend_id):
