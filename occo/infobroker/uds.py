@@ -60,16 +60,16 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
     def infra_state(self, infra_id, **kwargs):
         try:
             retval = self.get_infra(infra_id, True)
+            if not retval:
+                return dict()
+        except KeyError:
+            return dict()
+        else:
             for node in retval.itervalues():
                 for instance in node.itervalues():
                     instance.state = self.ib.get('node.state',
                                                  instance['node_id'])
-        except KeyError:
-            return dict()
-        else:
-            return \
-                retval if retval \
-                else dict()
+            return retval
 
     def get_one_definition(self, node_type, preselected_backend_id):
         all_definitions = self.all_nodedef(node_type)
