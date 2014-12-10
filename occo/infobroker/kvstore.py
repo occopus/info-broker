@@ -26,7 +26,7 @@ class KeyValueStore(factory.MultiBackend):
     def has_key(self, key):
         return self.catch_all or self._contains_key(key)
     def _contains_key(self, key):
-	raise NotImplementedError()
+        raise NotImplementedError()
     def __getitem__(self, key):
         return self.query_item(key)
     def __setitem__(self, key, value):
@@ -38,14 +38,14 @@ class KeyValueStore(factory.MultiBackend):
 class DictKVStore(KeyValueStore):
     def __init__(self, init_dict=None, **kwargs):
         super(DictKVStore, self).__init__(**kwargs)
-	self.backend = dict()
+        self.backend = dict()
         if init_dict is not None:
             self.backend.update(init_dict)
         self.lock = threading.Lock()
 
     def query_item(self, key):
         with self.lock:
-            return self.backend.get(key) if self.catch_all else self.backend[key] 
+            return self.backend.get(key) if self.catch_all else self.backend[key]
     def set_item(self, key, value):
         with self.lock:
             self.backend[key] = value
