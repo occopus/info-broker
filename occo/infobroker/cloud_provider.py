@@ -22,6 +22,11 @@ class CloudInfoProvider(ib.InfoProvider):
     def get_node_state(self, node_id):
         return 'running?'
 
+    @ib.provides('infrastructure.started')
+    def get_infra_started(self, infra_id):
+        # TODO fixup when real SC is implemented
+        return infra_id in self.sc.environments
+
     @ib.provides('infrastructure.state')
     def infra_state(self, infra_id, **kwargs):
         try:
