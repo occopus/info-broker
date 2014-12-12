@@ -19,11 +19,10 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
         self.kvstore = KeyValueStore(**backend_config)
         self.ib = info_broker
 
-    def infra_key(self, infra_id, dynamic):
-        return 'infra:{0!s}{1!s}'.format(infra_id,
-                                         ':state' if dynamic else '')
-    def get_infra(self, infra_id, dynamic):
-        return self.kvstore.query_item(self.infra_key(infra_id, dynamic))
+    def infra_description_key(self, infra_id):
+        return 'infra:{0!s}:description'.format(infra_id)
+    def infra_state_key(self, infra_id):
+        return 'infra:{0!s}:state'.format(infra_id)
 
     def auth_data_key(self, backend_id, user_id):
         return 'auth:{0!s}:{1!s}'.format(backend_id, user_id)
@@ -48,32 +47,19 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
         return self.kvstore.query_item(
             self.target_key(backend_id))
 
+    @ib.provides('infrastructure.static_description')
+    def get_static_description(self, infra_id, **kwargs):
+        return self.kvstore.query_item(
+            self.infra_description_key(infra_id))
+
     @ib.provides('infrastructure.name')
     def infra_name(self, infra_id, **kwargs):
-        return self.get_infra(infra_id, False).name
+        return self.get_static_description(infra_id).name
 
-    @ib.provides('infrastructure.static_description')
-    def infra_descr(self, infra_id, **kwargs):
-        return self.get_infra(infra_id, False)
-
-    @ib.provides('node.state')
-    def get_node_state(self, node_id):
-        return 'running?'
-
-    @ib.provides('infrastructure.dynamic_state')
-    def infra_state(self, infra_id, **kwargs):
-        try:
-            retval = self.get_infra(infra_id, True)
-            if not retval:
-                return dict()
-        except KeyError:
-            return dict()
-        else:
-            for node in retval.itervalues():
-                for instance in node.itervalues():
-                    instance['state'] = self.ib.get('node.state',
-                                                    instance['node_id'])
-            return retval
+    @ib.provides('infrastructure.state')
+    def get_infrastructure_state(self, infra_id, **kwargs):
+        return self.kvstore.query_item(
+            self.infra_state_key(infra_id))
 
     def get_one_definition(self, node_type, preselected_backend_id):
         all_definitions = self.all_nodedef(node_type)
