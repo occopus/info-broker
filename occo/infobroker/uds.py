@@ -58,8 +58,7 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
 
     @ib.provides('infrastructure.node_instances')
     def get_infrastructure_state(self, infra_id, **kwargs):
-        return self.kvstore.query_item(
-            self.infra_state_key(infra_id))
+        return self.kvstore.query_item(self.infra_state_key(infra_id), dict())
 
     def get_one_definition(self, node_type, preselected_backend_id):
         all_definitions = self.all_nodedef(node_type)
