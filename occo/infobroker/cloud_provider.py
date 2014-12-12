@@ -22,10 +22,10 @@ class CloudInfoProvider(ib.InfoProvider):
     def get_node_state(self, node_id):
         return 'running?'
 
-    @ib.provides('infrastructure.dynamic_state')
+    @ib.provides('infrastructure.state')
     def infra_state(self, infra_id, **kwargs):
         try:
-            retval = self.ib.get('infrastructure.state', infra_id)
+            retval = self.ib.get('infrastructure.node_instances', infra_id)
             if not retval:
                 return dict()
         except KeyError:
