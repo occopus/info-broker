@@ -81,13 +81,14 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
 @factory.register(UDS, 'dict')
 class DictUDS(UDS):
     def add_infrastructure(self, static_description):
-        self.kvstore.set_item(self.infra_key(static_description.infra_id, False),
-                              static_description)
+        self.kvstore.set_item(
+            self.infra_description_key(static_description.infra_id),
+            static_description)
     def remove_infrastructure(self, infra_id):
         pass
     def register_started_node(self, infra_id, node_name, instance_data):
         node_id = instance_data['node_id']
-        infra_key = self.infra_key(infra_id, True)
+        infra_key = self.infra_state_key(infra_id)
         infra_state = self.infra_state(infra_id)
         node_list = infra_state.setdefault(node_name, dict())
         node_list[node_id] = instance_data
@@ -102,8 +103,9 @@ class DictUDS(UDS):
         pass
 
     def add_infrastructure(self, static_description):
-        self.kvstore.set_item(self.infra_key(static_description.infra_id, False),
-                              static_description)
+        self.kvstore.set_item(
+            self.infra_description_key(static_description.infra_id),
+            static_description)
     def remove_infrastructure(self, infra_id):
         pass
     def register_started_node(self, infra_id, node_name, instance_data):
