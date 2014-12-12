@@ -10,6 +10,7 @@ __all__ = ['KeyValueStore',
 
 import occo.infobroker.kvstore as kvs
 import occo.util.factory as factory
+import occo.util as util
 import yaml
 import logging
 import redis
@@ -25,11 +26,10 @@ class RedisKVStore(kvs.KeyValueStore):
         self.backend = redis.StrictRedis(host, port, db)
         self.serialize = serialize
         self.deserialize = deserialize
-    def query_item(self, key):
+    def query_item(self, key, default=None):
         data = self.backend.get(key)
-        return \
-            self.deserialize(data) if data \
-            else None
+        retval = self.deserialize(data) if data else None
+        return util.coalesce(retval, default)
     def set_item(self, key, value):
         self.backend.set(key,
                          self.serialize(value) if value else None)

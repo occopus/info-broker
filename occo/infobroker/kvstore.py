@@ -19,7 +19,7 @@ log = logging.getLogger('occo.infobroker.kvstore')
 class KeyValueStore(factory.MultiBackend):
     def __init__(self, catch_all=False, **kwargs):
         self.catch_all = catch_all
-    def query_item(self, key):
+    def query_item(self, key, default=None):
         raise NotImplementedError()
     def set_item(self, key, value):
         raise NotImplementedError()
@@ -43,9 +43,9 @@ class DictKVStore(KeyValueStore):
             self.backend.update(init_dict)
         self.lock = threading.Lock()
 
-    def query_item(self, key):
+    def query_item(self, key, default=None):
         with self.lock:
-            return self.backend.get(key) if self.catch_all else self.backend[key]
+            return self.backend.get(key, default)
     def set_item(self, key, value):
         with self.lock:
             self.backend[key] = value
