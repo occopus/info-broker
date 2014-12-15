@@ -19,8 +19,12 @@ class CloudInfoProvider(ib.InfoProvider):
         self.sc = service_composer
 
     @ib.provides('node.state')
-    def get_node_state(self, node_id):
-        return 'running?'
+    def get_node_state(self, instance_data):
+        ch_state = self.ch.get_node_state(instance_data)
+        # TODO get sc_state from service composer
+        # TODO standardize states for both sources
+        # TODO calculate overall state from the two sub-states
+        return ch_state
 
     @ib.provides('infrastructure.started')
     def get_infra_started(self, infra_id):
@@ -32,6 +36,5 @@ class CloudInfoProvider(ib.InfoProvider):
         instances = self.ib.get('infrastructure.node_instances', infra_id)
         for node in instances.itervalues():
             for instance in node.itervalues():
-                instance['state'] = self.ib.get('node.state',
-                                                instance['node_id'])
+                instance['state'] = self.ib.get('node.state', instance)
         return instances
