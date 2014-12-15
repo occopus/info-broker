@@ -20,10 +20,8 @@ class CloudInfoProvider(ib.InfoProvider):
 
     @ib.provides('node.state')
     def get_node_state(self, instance_data):
-        instance_id = instance_data['instance_id']
-        ch_state = self.ch.get_node_state(instance_id)
-        # TODO use other information form instance_data if necessary
-        # TODO get sc_state from service composer (instance_data['node_id'])
+        ch_state = self.ch.get_node_state(instance_data)
+        # TODO get sc_state from service composer
         # TODO standardize states for both sources
         # TODO calculate overall state from the two sub-states
         return ch_state
