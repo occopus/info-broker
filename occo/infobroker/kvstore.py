@@ -13,6 +13,7 @@ import occo.util.factory as factory
 import yaml
 import logging
 import threading
+import copy
 
 log = logging.getLogger('occo.infobroker.kvstore')
 
@@ -45,7 +46,7 @@ class DictKVStore(KeyValueStore):
 
     def query_item(self, key, default=None):
         with self.lock:
-            return self.backend.get(key, default)
+            return copy.deepcopy(self.backend.get(key, default))
     def set_item(self, key, value):
         with self.lock:
             self.backend[key] = value
