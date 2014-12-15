@@ -1,7 +1,7 @@
 #
 # Copyright (C) 2014 MTA SZTAKI
 #
-# User Data Store for the OCCO InfoBroker
+# Dynamic Cloud-related information provider for the OCCO InfoBroker
 #
 
 __all__ = ['CloudInfoProvider']
