@@ -96,7 +96,7 @@ class DictUDS(UDS):
         pass
 
 @factory.register(UDS, 'redis')
-class DictUDS(UDS):
+class RedisUDS(UDS):
     def get_one_definition(self, node_type, preselected_backend_id):
         # TODO implement exploiting redis features
         pass
