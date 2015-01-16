@@ -1,7 +1,7 @@
 #
 # Copyright (C) 2014 MTA SZTAKI
 #
-# User Data Store for the OCCO InfoBroker
+# Dynamic Cloud-related information provider for the OCCO InfoBroker
 #
 
 __all__ = ['CloudInfoProvider']
@@ -21,10 +21,10 @@ class CloudInfoProvider(ib.InfoProvider):
     @ib.provides('node.state')
     def get_node_state(self, instance_data):
         ch_state = self.ch.get_node_state(instance_data)
-        # TODO get sc_state from service composer
+        sc_state = self.sc.get_node_state(instance_data)
         # TODO standardize states for both sources
         # TODO calculate overall state from the two sub-states
-        return ch_state
+        return "{0}:{1}".format(ch_state, sc_state)
 
     @ib.provides('infrastructure.started')
     def get_infra_started(self, infra_id):

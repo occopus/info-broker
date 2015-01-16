@@ -60,6 +60,12 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
     def get_infrastructure_state(self, infra_id, **kwargs):
         return self.kvstore.query_item(self.infra_state_key(infra_id), dict())
 
+    def service_composer_key(self, sc_id):
+        return 'service_composer:{0}'.format(sc_id)
+    @ib.provides('service_composer.aux_data')
+    def get_service_composer_data(self, sc_id, **kwargs):
+        return self.kvstore.query_item(self.service_composer_key(sc_id), dict())
+
     def get_one_definition(self, node_type, preselected_backend_id):
         all_definitions = self.all_nodedef(node_type)
         if preselected_backend_id:
@@ -96,7 +102,7 @@ class DictUDS(UDS):
         pass
 
 @factory.register(UDS, 'redis')
-class DictUDS(UDS):
+class RedisUDS(UDS):
     def get_one_definition(self, node_type, preselected_backend_id):
         # TODO implement exploiting redis features
         pass
