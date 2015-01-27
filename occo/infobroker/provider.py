@@ -150,6 +150,8 @@ class InfoProvider(object):
     InfoProvider to be forward-compatible with actual information providers
     that use resources.
 
+    .. _ibsplit:
+
     .. todo:: Currently, the InfoBroker can only be split over the keyspace. It
         would be possible to be split over argument-space too. This would allow
         us to distribute the InfoBroker in such a way that, e.g., one could be
@@ -180,6 +182,26 @@ class InfoProvider(object):
                     @acquire_mykey.override_check
                     def check_mykey(arg1, arg2):
                         return True if canhandle_arg1_arg2 else False
+
+    .. todo:: In case of :class:`InfoRouter` and
+        :class:`~occo.infobroker.remote.RemoteInfoProviderStub`, it may be
+        desirable to cache whether the object itself, and/or a specific
+        sub-provider can handle a specific key. This would reduce communication
+        overhead a lot in case of remote querying.
+
+        However, this would interfere with the :ref:`other to-do <ibsplit>`
+        (argument-space changes over time, which interferes with caching), and
+        also makes modifying the system a bit more difficult (a changed remote
+        module may support new keys).
+
+        Cache-timeout would help, but it would mean a delay in "can-get"
+        information being distributed up the chain.
+
+        Another solution would be communication back-links, and an explicit
+        ``invalidate_cache`` method. This method would notify all clients
+        through its back-links to invalidate their caches, which would, in turn,
+        notify their back-links, etc.
+
     """
 
     def __init__(self, **config):

@@ -4,6 +4,28 @@
 # Configuration primitives for the SZTAKI Cloud Orchestrator
 #
 
+"""
+This module implements remote accessing
+:class:`~occo.infobroker.provider.InfoProvider` using :ref:`OCCO communication
+primitives <comm>`.
+
+.. moduleauthor:: Adam Visegradi <adam.visegradi@sztaki.mta.hu>
+
+The :class:`~occo.infobroker.provider.InfoProvider` interface is designed so
+there's only one remote-access method:
+:meth:`~occo.infobroker.provider.InfoProvider.get`. This means that there is no
+need to implement the Command pattern: sending only query parameters (esp. the
+``key``) to the skeleton is sufficient.
+
+The method :meth:`~occo.infobroker.provider.InfoProvider.can_get` is not
+exposed through the remote interface as it would be inefficient: in case the
+backend ("real") provider actually ``can_get`` the given information, a second
+message would be necessary to call the ``get`` function too. Instead, the
+``get`` function is called directly and the ``KeyNotFoundException`` is handled
+as necessary.
+
+"""
+
 __all__ = ['RemoteProviderStub', 'RemoteProviderSkeleton']
 
 import occo.infobroker as ib
