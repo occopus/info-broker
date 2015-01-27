@@ -53,15 +53,32 @@ class Provides(object):
 #: Method decorator that marks methods to be gathered by ``@provider``.
 provides = Provides
 
-class LoggedProvider(object):
-    # Documented in alias's docstring below (Sphinx peculiarity)
-    def __init__(self,
-                 log_method,
-                 two_records=False,
-                 filter_method=identity):
+class logged(object):
+    """ Wraps the decorated method with logging events.
+
+    :param log_method: The logging method to be used. Can be any function, but
+        intended to be used with :class:`logging.Logger` log methods
+        (``debug``, ``info``, etc.)
+    :type log_method: :keyword:`function`\ ``(format_string, *args) -> None``
+
+    :param bool two_records: Generate two records. If :data:`False` (default)
+        then only the results of the query are recorded. If :data:`True`, a log
+        record is generated *before* executing the query.
+
+    :param filter_method: A transformation method accepting any number of
+        arguments, and then returning all of them, as a tuple, each transformed
+        as necessary. E.g.: hiding passwords in each of them utilizing
+        :class:`occo.util.general.Cleaner`.
+
+    :type filter_method: :keyword:`function`\ ``(*args) -> tuple``;
+        ``len(*args) == len(tuple)``
+        
+    """
+    def __init__(self, log_method, two_records=False, filter_method=identity):
         self.log_method = log_method
         self.two_records = two_records
         self.filter_method = filter_method
+
     def __call__(self, fun):
         # Optimization: accesing locals is
         # _way_ faster than accesing attributes
@@ -72,79 +89,129 @@ class LoggedProvider(object):
 
         @wraps(fun)
         def w(_self, *args, **kwargs):
+            # All data (except the key) are filtered first.
+
             l_args, l_kwargs = filter_method(args, kwargs)
             if two_records:
                 log_method( 'querying[%s](%r, %r) => ...',
                            provided_key, l_args, l_kwargs)
+
             retval = fun(_self, *args, **kwargs)
+
             l_args, l_kwargs, l_retval = filter_method(args, kwargs, retval)
             log_method('query_result[%s](%r, %r) => %r',
                        provided_key, l_args, l_kwargs, l_retval)
+
             return retval
 
         return w
-#: .. function:: logged(log_method, two_records=False, filter_method=identity)
-#: 
-#:     Wraps the decorated method with logging events.
-#:
-#:   :param log_method: The logging method to be used. Can be any function, but
-#:         intended to be used with :class:`logging.Logger` log methods (``debug``,
-#:         ``info``, etc.)
-#:   :type log_method: :keyword:`function`: ``(format_string, *args)``
-#:
-#:
-#:
-logged = LoggedProvider
 
-def Provider(cls):
-    """Class decorator that gathers all methods of the class that are marked
-    with ``provides``.
-
-    These methods are gathered into the decorated class's ``providers``
-    dictionary.
+def provider(cls):
+    """ Prepares a class to be an :class:`InfoProvider`.
+    
+    This decorator gathers all methods of the class marked with
+    :func:`@provides <provides>`. These methods are gathered into the decorated
+    class's ``providers`` dictionary.
 
     A YAML constructor will also be registered for the decorated class, so it
-    can be instantiated automatically by ``yaml.load()``
+    can be instantiated automatically by :func:`yaml.load`.
+
+    Although a decorator, no wrapper class is involved: the input class is
+    returned, only its attrbutes are updated.
+
     """
+
     def yaml_constructor(loader, node):
         return cls() if type(node) is yaml.ScalarNode \
             else cls(**loader.construct_mapping(node, deep=True))
+
+    # TODO: % <- format
     yaml.add_constructor('!%s'%cls.__name__, yaml_constructor)
 
-    cls.providers=dict((i[1].provided_key, i[1])
-                       for i in getmembers(cls)
-                       if hasattr(i[1], 'provided_key'))
+    cls.providers = dict((i[1].provided_key, i[1])
+                         for i in getmembers(cls)
+                         if hasattr(i[1], 'provided_key'))
+    
+    # There is no wrapper class, the input class is returned.
     return cls
-provider=Provider
-
 
 class InfoProvider(object):
     """Abstract implementation of an information provider.
 
-    Sub-classes must be decorated with ``@provider``, and provider methods must
-    be marked with the ``@provides(<KEY>)`` decorator. These methods will then
-    be stored in the class object, in a lookup table.
+    Sub-classes must be decorated with :func:`@provider <provider>`, and
+    provider methods must be marked with the :func:`@provides <provides>`
+    decorator. These methods will then be stored in the class object, in a
+    lookup table.
 
     The ``InfoProvider`` uses this lookup table to decide whether it can handle
     a specific request, and to perform it if it can.
+
+    Trivial context management (i.e.: it does nothing) is supported by the
+    InfoProvider to be forward-compatible with actual information providers
+    that use resources.
+
+    .. todo:: Currently, the InfoBroker can only be split over the keyspace. It
+        would be possible to be split over argument-space too. This would allow
+        us to distribute the InfoBroker in such a way that, e.g., one could be
+        placed physically near one backend, while another, supporting the same
+        keys, can be placed near another. E.g.: one handling node.status
+        queries for one cloud, and one for another.
+        
+        Implementation:
+          - Pass ``*args`` and ``**kwargs`` through can_get.
+          - This way, it can be overridden in a derived class so the arguments
+            are also used.
+          - It may also be possible to attach ``can_get`` overrides to specific
+            ``get`` methods. ``can_get`` would check whether there is a method
+            available for that key (as it does now), and *then* it could ask
+            this specific ``get`` function if it wants to override ``can_get``.
+            E.g., like properties:
+
+            .. code:: python
+
+                @provider
+                class EG_Provider(InfoProvider):
+                    
+                    @provides('mykey')
+                    def acquire_mykey(arg1, arg2):
+                        ...
+
+                    # This registers this override so can_get() can use it:
+                    @acquire_mykey.override_check
+                    def check_mykey(arg1, arg2):
+                        return True if canhandle_arg1_arg2 else False
     """
+
     def __init__(self, **config):
-        """Initialize the InfoProvider with the given configuration."""
         self.__dict__.update(config)
 
     def get(self, key, *args, **kwargs):
-        """Try to get the information pertaining to the given key.
+        """
+        Try to get the information pertaining to the given key.
+
+        :param str key: The key to be queried.
+        :param * args: Passed to the actual handler, any arguments querying
+            this key requires.
+        :param ** kwargs: Passed to the actual handler, any arguments querying
+            this key requires.
         
-        Raises: ``KeyNotFoundError`` if the given key is not supported."""
+        :raises KeyNotFoundError: if the given key is not supported.
+
+        .. todo:: Throughout the code: fix documentation: ``:raises:`` does is
+            not rendered properly, the exception type is not a hyperlink.
+        """
         return self._immediate_get(key, *args, **kwargs)
 
     def can_get(self, key):
         """Checks whether the given information request can be fulfilled by this
         information provider.
+
+        :param str key: The key to be checked.
         """
         return self._can_immediately_get(key)
 
     def __str__(self):
+        # TODO: % <- format
         return '%s %s'%(self.__class__.__name__, self.keys)
 
     @property
@@ -156,38 +223,44 @@ class InfoProvider(object):
         """A list of keys that can be handled by this instance."""
         return list(self.iterkeys)
 
-    # Trivial context management is supported by the InfoProvider to be
-    # forward-compatible with actual information providers that use resources.
     def __enter__(self):
         return self
     def __exit__(self, type_, value, tb):
         pass
 
     def _immediate_get(self, key, *args, **kwargs):
-        """Direct implementation of get().
+        """Direct implementation of :meth:`get`.
 
         This method uses the class's ``providers`` lookup table to fulfill the
         request.
+
+        For details see :meth:`get`.
         """
         if not self._can_immediately_get(key):
             raise KeyNotFoundError(self.__class__.__name__, key)
         return self.__class__.providers[key](self, *args, **kwargs)
+
     def _can_immediately_get(self, key):
-        """Direct implementation of can_get().
+        """Direct implementation of :meth:`can_get`.
 
         This method uses the class's ``providers`` lookup table to determine
         whether the request can be fulfilled.
+
+        For details see :meth:`can_get`.
         """
         cls = self.__class__
         return hasattr(cls, 'providers') and (key in cls.providers)
 
 class InfoRouter(InfoProvider):
-    """Abstract implementation of a routing information provider.
+    """Implementation of a routing information provider.
 
-    This provider stores a list of ``InfoProvider``s (sub-providers) that are
-    queried in order to find the one that can fulfill a request. An
-    ``InfoRouter`` can itself handle requests; that is, the InfoRouter instance
-    can be considered as the first element in the sub-providers list.
+    This provider stores a list of :class:`InfoProvider`\ s (*sub-providers*)
+    that are queried in order to find the one that can fulfill a request.
+    
+    Being an :class:`InfoProvider`, a sub-class to ``InfoRouter`` can itself
+    handle requests if decorated properly. In this case, the direct handlers
+    will receive priority over contained handlers, i.e. the ``InfoRouter``
+    instance can be considered as the first element in the sub-providers list.
     """
 
     def __init__(self, **config):
@@ -201,20 +274,28 @@ class InfoRouter(InfoProvider):
             else next((i for i in self.sub_providers if i.can_get(key)), None)
 
     def __str__(self):
+        # TODO: % <- format
         return '%s %s + [%s]'%(self.__class__.__name__,
                              self.keys,
                              ', '.join(it.imap(str, self.sub_providers)))
 
     def get(self, key, *args, **kwargs):
+        """ Overrides :meth:`InfoRouter.get` """
+        # TODO: Rethink this `get` and `_find_responsible`. Isn't there a better
+        #       implementation? (Shorter/cleaner, not returning None.)
         responsible = self._find_responsible(key)
         if responsible is None:
             raise KeyNotFoundError(key)
         else:
             return responsible.get(key, *args, **kwargs)
+
     def can_get(self, key):
+        """ Overrides :meth:`InfoRouter.can_get` """
         return self._find_responsible(key) is not None
+
     @property
     def iterkeys(self):
+        """ Overrides :meth:`InfoRouter.iterkeys` """
         mykeys = super(InfoRouter, self).iterkeys
         sub_keys = (i.iterkeys for i in self.sub_providers)
         return flatten(it.chain(mykeys, sub_keys))
