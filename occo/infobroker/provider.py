@@ -1,8 +1,26 @@
 #
 # Copyright (C) 2014 MTA SZTAKI
 #
-# Configuration primitives for the SZTAKI Cloud Orchestrator
-#
+
+""" Information System for OCCO.
+
+.. moduleauthor:: Adam Visegradi <adam.visegradi@sztaki.mta.hu>
+
+This module contains the primitive components of the OCCO Information Broker
+Service.
+
+The base idea is that the Information Broker is defined as a simple interface
+(:class:`InfoProvider`) of whose main feature is that information is queried by
+*key*\ s (see :meth:`InfoProvider.get`). The Information Broker can be
+partitioned on the keyspace, ideally to form semantically closed modules.
+
+These modules can then be congregated into a hierarchy using the
+:class:`InfoRouter`, which hierarchy can then be split along any edge to become
+a distributed architecture of information provider components. These components
+can communicate through RPC calls (see :ref:`comm`), which is hidden behind an
+:class:`RemoteInfoProvider` stub.
+
+"""
 
 __all__ = ['provider', 'provides', 'InfoProvider', 'InfoRouter',
            'KeyNotFoundError', 'ArgumentError', 'logged']
@@ -14,27 +32,29 @@ import itertools as it
 import yaml
 
 class KeyNotFoundError(KeyError):
-    """Thrown by ``get`` functions when a given key cannot be handled."""
+    """Thrown by :meth:`InfoProvider.get` functions when a given key cannot be
+    handled."""
     pass
 
 class ArgumentError(ValueError):
-    """Thrown by ``get`` functions when there is an error in its arguments."""
+    """Thrown by :meth:`InfoProvider.get` functions when there is an error in
+    its arguments."""
     pass
 
 class Provides(object):
-    """Method decorator that marks methods to be gathered by ``@provider``.
-
-    The method is associated with a key and stored in the class's ``providers``
-    lookup table.
-    """
+    # Documented in alias's docstring below (Sphinx peculiarity)
     def __init__(self, key):
         self.key = key
     def __call__(self, f):
+        # Store the provided information in the decorated method's attribute.
+        # This information will be used by InfoProvider
         f.provided_key = self.key
         return f
+#: Method decorator that marks methods to be gathered by ``@provider``.
 provides = Provides
 
 class LoggedProvider(object):
+    # Documented in alias's docstring below (Sphinx peculiarity)
     def __init__(self,
                  log_method,
                  two_records=False,
@@ -63,6 +83,17 @@ class LoggedProvider(object):
             return retval
 
         return w
+#: .. function:: logged(log_method, two_records=False, filter_method=identity)
+#: 
+#:     Wraps the decorated method with logging events.
+#:
+#:   :param log_method: The logging method to be used. Can be any function, but
+#:         intended to be used with :class:`logging.Logger` log methods (``debug``,
+#:         ``info``, etc.)
+#:   :type log_method: :keyword:`function`: ``(format_string, *args)``
+#:
+#:
+#:
 logged = LoggedProvider
 
 def Provider(cls):
