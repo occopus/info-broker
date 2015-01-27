@@ -4,8 +4,7 @@
 # Configuration primitives for the SZTAKI Cloud Orchestrator
 #
 
-__all__ = ['RemoteProvider', 'RemoteSkeleton',
-           'CommunicationError', 'TransientError', 'CriticalError']
+__all__ = ['RemoteProviderStub', 'RemoteProviderSkeleton']
 
 import occo.infobroker as ib
 import occo.util.communication as comm
