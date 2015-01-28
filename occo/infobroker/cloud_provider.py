@@ -13,6 +13,14 @@ log = logging.getLogger('occo.infobroker.dsp')
 
 @ib.provider
 class CloudInfoProvider(ib.InfoProvider):
+    """
+    :class:`~occo.infobroker.provider.InfoProvider` implementation. This
+    class contains query implementations specific to the dynamic state of
+    an infrastructure.
+
+    .. todo:: Either the naming of this class is wrong, or some of the
+        handlers need to be moved elsewhere.
+    """
     def __init__(self, info_broker, service_composer, cloud_handler):
         self.ib = info_broker
         self.ch = cloud_handler
@@ -20,6 +28,12 @@ class CloudInfoProvider(ib.InfoProvider):
 
     @ib.provides('node.state')
     def get_node_state(self, instance_data):
+        """
+        Query node state.
+
+        :param instance_data: Information required to query the
+            infrastructure's state.
+        """
         ch_state = self.ch.get_node_state(instance_data)
         sc_state = self.sc.get_node_state(instance_data)
         # TODO standardize states for both sources
