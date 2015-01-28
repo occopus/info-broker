@@ -41,6 +41,12 @@ class ArgumentError(ValueError):
     its arguments."""
     pass
 
+EXTRA_DOC_TEMPLATE="""
+.. ibkey:: {key}
+
+{orig_doc}
+"""
+
 class Provides(object):
     # Documented in alias's docstring below (Sphinx peculiarity)
     def __init__(self, key):
@@ -49,6 +55,7 @@ class Provides(object):
         # Store the provided information in the decorated method's attribute.
         # This information will be used by InfoProvider
         f.provided_key = self.key
+        f.__doc__ = EXTRA_DOC_TEMPLATE.format(key=self.key, orig_doc=f.__doc__)
         return f
 #: Method decorator that marks methods to be gathered by ``@provider``.
 provides = Provides
