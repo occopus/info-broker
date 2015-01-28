@@ -41,11 +41,29 @@ class ArgumentError(ValueError):
     its arguments."""
     pass
 
-EXTRA_DOC_TEMPLATE="""
-.. ibkey:: {key}
+EXTRA_DOC_TEMPLATE="""{indent}.. ibkey:: {key} 
 
 {orig_doc}
 """
+
+def format_doc(key, orig_doc):
+    def line_indent(line):
+        i = 0
+        for c in line:
+            if not c.isspace():
+                return i
+            i += 1
+        return 0
+    def find_indent(doc):
+        """ Indent of the first non-empty line. """
+        return next(
+            (line_indent(ln) for ln in doc.splitlines() if not ln.isspace()),
+            0)
+
+    return None if orig_doc is None \
+        else EXTRA_DOC_TEMPLATE.format(indent='',
+                                       key=key,
+                                       orig_doc=orig_doc)
 
 class Provides(object):
     # Documented in alias's docstring below (Sphinx peculiarity)
@@ -55,7 +73,7 @@ class Provides(object):
         # Store the provided information in the decorated method's attribute.
         # This information will be used by InfoProvider
         f.provided_key = self.key
-        f.__doc__ = EXTRA_DOC_TEMPLATE.format(key=self.key, orig_doc=f.__doc__)
+        f.__doc__ = format_doc(self.key, f.__doc__)
         return f
 #: Method decorator that marks methods to be gathered by ``@provider``.
 provides = Provides
