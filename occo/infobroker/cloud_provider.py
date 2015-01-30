@@ -31,6 +31,8 @@ class CloudInfoProvider(ib.InfoProvider):
         """
         Query node state.
 
+        .. ibkey::
+
         :param instance_data: Information required to query the
             infrastructure's state.
         """

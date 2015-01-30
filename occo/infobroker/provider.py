@@ -41,7 +41,7 @@ class ArgumentError(ValueError):
     its arguments."""
     pass
 
-EXTRA_DOC_TEMPLATE=""".. ibkey:: {key} 
+EXTRA_DOC_TEMPLATE=""".. decl_ibkey:: {key}
 
 {orig_doc}
 """
