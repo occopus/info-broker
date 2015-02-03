@@ -41,13 +41,23 @@ class ArgumentError(ValueError):
     its arguments."""
     pass
 
-EXTRA_DOC_TEMPLATE=""".. decl_ibkey:: {key}
+EXTRA_DOC_TEMPLATE="""
+{indent}.. decl_ibkey:: {key}
 
 {orig_doc}
 """
 
 def format_doc(key, orig_doc):
-    return EXTRA_DOC_TEMPLATE.format(key=key, orig_doc=orig_doc)
+    if not orig_doc:
+        return orig_doc
+    import itertools as it
+    filteredlines = it.ifilter(bool,
+                               it.imap(str.rstrip,
+                                       orig_doc.splitlines()))
+    indent = ''.join(' ' for i in next(filteredlines, '') if i == ' ')
+    result = EXTRA_DOC_TEMPLATE.format(indent=indent, key=key, orig_doc=orig_doc)
+    print result
+    return result
 
 class Provides(object):
     # Documented in alias's docstring below (Sphinx peculiarity)
