@@ -1,15 +1,21 @@
 #
 # Copyright (C) 2014 MTA SZTAKI
 #
-# Dynamic Cloud-related information provider for the OCCO InfoBroker
-#
+
+"""
+:class:`~occo.infobroker.provider.InfoProvider` module implementing
+cloud-related queries.
+
+.. moduleauthor:: Adam Visegradi <adam.visegradi@sztaki.mta.hu>
+
+"""
 
 __all__ = ['CloudInfoProvider']
 
 import occo.infobroker as ib
 import logging
 
-log = logging.getLogger('occo.infobroker.dsp')
+log = logging.getLogger('occo.infobroker.cloudprovider')
 
 @ib.provider
 class CloudInfoProvider(ib.InfoProvider):
@@ -32,8 +38,14 @@ class CloudInfoProvider(ib.InfoProvider):
         .. ibkey::
             Query node state.
 
-            :param teststr instance_data:
-                Information required to query the infrastructure's state.
+            :param data instance_data:
+                Information required to query the infrastructure's state. Its
+                content depends on the backends actually the request.
+
+            :returns: The compound state of the node based on its states
+                according to the :meth:`Cloud Handler
+                <occo.cloudhandler.cloudhandler.CloudHandler.get_node_state>`
+                and the :meth:`Service Composer <n/a>`
         """
         ch_state = self.ch.get_node_state(instance_data)
         sc_state = self.sc.get_node_state(instance_data)
@@ -49,12 +61,26 @@ class CloudInfoProvider(ib.InfoProvider):
             not necessarily ready).
 
             :param infra_id: Infrastructure identifier.
+            :returns: (:class:`bool`) Whether the infrastructure has started.
+
+        .. todo:: Fixup this query when the :ref:`Service Composer
+            <servicecomposer>` has been implemented.
         """
-        # TODO fixup when real SC is implemented
         return infra_id in self.sc.environments
 
     @ib.provides('infrastructure.state')
     def infra_state(self, infra_id, **kwargs):
+        """
+        .. ibkey::
+            Query the dynamic (actual) state of the infrastructure.
+
+            :param str infra_id: The identifier of the infrastructure.
+            :returns:
+                (``node_id -> (instance_id -> instance_data)``)
+                A mapping of nodes to instances, each instance data updated
+                with the actual status of that instance.
+            
+        """
         instances = self.ib.get('infrastructure.node_instances', infra_id)
         for node in instances.itervalues():
             for instance in node.itervalues():
