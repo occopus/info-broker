@@ -42,21 +42,35 @@ class ArgumentError(ValueError):
     pass
 
 EXTRA_DOC_TEMPLATE="""
-{indent}.. decl_ibkey:: {key}
+{indent}.. decl_ibkey::
+{indent}    {key}
 
 {orig_doc}
 """
 
+def indent_width(doc, tabsize=4):
+    indentwidth = 0
+    for c in doc:
+        if c == ' ':
+            indentwidth += 1
+        elif c == '\t':
+            indentwidth += tabsize
+        elif c == '\n' or c == '\r':
+            # It was an empty line, reset indent width
+            indentwidth = 0
+        else:
+            # First non-space character
+            break
+    return indentwidth
+
+
 def format_doc(key, orig_doc):
     if not orig_doc:
         return orig_doc
-    import itertools as it
-    filteredlines = it.ifilter(bool,
-                               it.imap(str.rstrip,
-                                       orig_doc.splitlines()))
-    indent = ''.join(' ' for i in next(filteredlines, '') if i == ' ')
+
+
+    indent = ' ' * indent_width(orig_doc)
     result = EXTRA_DOC_TEMPLATE.format(indent=indent, key=key, orig_doc=orig_doc)
-    print result
     return result
 
 class Provides(object):
@@ -91,7 +105,7 @@ class logged(object):
 
     :type filter_method: :keyword:`function`\ ``(*args) -> tuple``;
         ``len(*args) == len(tuple)``
-        
+
     """
     def __init__(self, log_method, two_records=False, filter_method=identity):
         self.log_method = log_method
@@ -127,7 +141,7 @@ class logged(object):
 
 def provider(cls):
     """ Prepares a class to be an :class:`InfoProvider`.
-    
+
     This decorator gathers all methods of the class marked with
     :func:`@provides <provides>`. These methods are gathered into the decorated
     class's ``providers`` dictionary.
@@ -150,7 +164,7 @@ def provider(cls):
     cls.providers = dict((i[1].provided_key, i[1])
                          for i in getmembers(cls)
                          if hasattr(i[1], 'provided_key'))
-    
+
     # There is no wrapper class, the input class is returned.
     return cls
 
@@ -177,7 +191,7 @@ class InfoProvider(object):
         placed physically near one backend, while another, supporting the same
         keys, can be placed near another. E.g.: one handling node.status
         queries for one cloud, and one for another.
-        
+
         Implementation:
           - Pass ``*args`` and ``**kwargs`` through can_get.
           - This way, it can be overridden in a derived class so the arguments
@@ -192,7 +206,7 @@ class InfoProvider(object):
 
                 @provider
                 class EG_Provider(InfoProvider):
-                    
+
                     @provides('mykey')
                     def acquire_mykey(arg1, arg2):
                         ...
@@ -235,7 +249,7 @@ class InfoProvider(object):
             this key requires.
         :param ** kwargs: Passed to the actual handler, any arguments querying
             this key requires.
-        
+
         :raises KeyNotFoundError: if the given key is not supported.
 
         .. todo:: Throughout the code: fix documentation: ``:raises:`` does is
@@ -297,7 +311,7 @@ class InfoRouter(InfoProvider):
 
     This provider stores a list of :class:`InfoProvider`\ s (*sub-providers*)
     that are queried in order to find the one that can fulfill a request.
-    
+
     Being an :class:`InfoProvider`, a sub-class to ``InfoRouter`` can itself
     handle requests if decorated properly. In this case, the direct handlers
     will receive priority over contained handlers, i.e. the ``InfoRouter``
