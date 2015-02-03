@@ -29,12 +29,11 @@ class CloudInfoProvider(ib.InfoProvider):
     @ib.provides('node.state')
     def get_node_state(self, instance_data):
         """
-        Query node state.
-
         .. ibkey::
+            Query node state.
 
-        :param instance_data: Information required to query the
-            infrastructure's state.
+            :param teststr instance_data:
+                Information required to query the infrastructure's state.
         """
         ch_state = self.ch.get_node_state(instance_data)
         sc_state = self.sc.get_node_state(instance_data)
@@ -44,6 +43,13 @@ class CloudInfoProvider(ib.InfoProvider):
 
     @ib.provides('infrastructure.started')
     def get_infra_started(self, infra_id):
+        """
+        .. ibkey::
+            Query whether the infrastracture has been started (initialized, but
+            not necessarily ready).
+
+            :param infra_id: Infrastructure identifier.
+        """
         # TODO fixup when real SC is implemented
         return infra_id in self.sc.environments
 
