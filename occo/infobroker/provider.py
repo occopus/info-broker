@@ -150,7 +150,17 @@ def provider(cls):
     can be instantiated automatically by :func:`yaml.load`.
 
     Although a decorator, no wrapper class is involved: the input class is
-    returned, only its attrbutes are updated.
+    returned, only its attributes are updated.
+
+    .. todo:: Use meta class if possible to avoid information duplication
+        (inheriting from InfoProvider *and* declaring ``@provider``).
+
+    .. todo:: Inheritance and overriding. Need to think through what happens
+        when a ``@provides`` method is overridden in a derived class.
+        Explicitly specify the key again? Or implicitly inheriting the declared
+        key. (It is possible if methods are registered by name, and the
+        metaclass transforms the table for each *object* upon its
+        instantiation. But this may not be desirable.)
 
     """
 
