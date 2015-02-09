@@ -1,12 +1,18 @@
 #
 # Copyright (C) 2014 MTA SZTAKI
 #
-# Key-Value store abstraction for the OCCO InfoBroker
-#
 
-__all__ = ['KeyValueStore',
-           'KeyValueStoreProvider',
-           'DictKVStore']
+"""
+Redis_ implementation of the OCCO
+:class:`~occo.infobroker.kvstore.KeyValueStore`.
+
+.. moduleauthor:: Adam Novak <adam.novak@sztaki.mta.hu>
+
+.. _Redis: http://redis.io/
+
+"""
+
+__all__ = ['RedisKVStore']
 
 import occo.infobroker.kvstore as kvs
 import occo.util.factory as factory
@@ -19,6 +25,20 @@ log = logging.getLogger('occo.infobroker.kvstore.redis')
 
 @factory.register(kvs.KeyValueStore, 'redis')
 class RedisKVStore(kvs.KeyValueStore):
+    """
+    Redis implementation of :class:`~occo.infobroker.kvstore.KeyValueStore`.
+
+    :param str host: Redis parameter: hostname.
+    :param str port: Redis parameter: port.
+    :param int db: Redis parameter: database id.
+    :param serialize: Serialization function. Used to convert objects to
+        storable representation (JSON, YAML, etc.)
+    :type serialize: :class:`object` ``->`` :class:`str`
+    :param deserialize: Deserialization function. Used to convert stored data
+        to run-time objects.
+    :type deserialize: :class:`str` -> :class:`object`
+
+    """
     def __init__(self, host='localhost', port='6379', db=0,
                  serialize=yaml.dump, deserialize=yaml.load,
                  **kwargs):
