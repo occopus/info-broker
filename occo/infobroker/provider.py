@@ -316,6 +316,7 @@ class InfoProvider(object):
         cls = self.__class__
         return hasattr(cls, 'providers') and (key in cls.providers)
 
+@provider
 class InfoRouter(InfoProvider):
     """Implementation of a routing information provider.
 
