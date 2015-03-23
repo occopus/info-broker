@@ -47,9 +47,9 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
         instantiate the correct UDS based on the *type* of the *backend*. Or
         something like this.
     """
-    def __init__(self, info_broker, **backend_config):
+    def __init__(self, **backend_config):
         self.kvstore = KeyValueStore(**backend_config)
-        self.ib = info_broker
+        self.ib = ib.main_info_broker
 
     def infra_description_key(self, infra_id):
         """

@@ -60,3 +60,5 @@ Example
 """
 
 from provider import *
+
+main_info_broker = None

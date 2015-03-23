@@ -68,7 +68,6 @@ def format_doc(key, orig_doc):
     if not orig_doc:
         return orig_doc
 
-
     indent = ' ' * indent_width(orig_doc)
     result = EXTRA_DOC_TEMPLATE.format(indent=indent, key=key, orig_doc=orig_doc)
     return result
@@ -249,6 +248,9 @@ class InfoProvider(object):
 
     def __init__(self, **config):
         self.__dict__.update(config)
+        if config.get('main_info_broker', False):
+            import occo.infobroker
+            occo.infobroker.main_info_broker = self
 
     def get(self, key, *args, **kwargs):
         """
