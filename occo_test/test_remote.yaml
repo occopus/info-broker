@@ -1,6 +1,6 @@
 default_mqconfig: &MQCFG
     protocol: amqp
-    host: 192.168.153.33
+    host: localhost
     vhost: test
     exhange: ''
     user: test
