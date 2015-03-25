@@ -38,14 +38,6 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
     The ``UDS`` will instantiate its backend upon construction, passing through
     parameters specified in ``backend_config``.
 
-    .. todo:: Instantiating the backend here may not be the best option.
-        Probably the caller should instantiate it as necessary, and specify
-        only a reference to it.
-
-        There is also information duplication: the protocol is specified for
-        both the UDS and the backend kvstore. Maybe it would be possible to
-        instantiate the correct UDS based on the *type* of the *backend*. Or
-        something like this.
     """
     def __init__(self):
         self.ib = ib.main_info_broker
@@ -137,7 +129,7 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
             :param str user_id: User id (duh).
 
         .. todo:: Sphinx structural problem: it cannot solve the class reference
-            above. This seems to be a clue...
+            above. This seems to be a clue for the ibkeys problems...
 
         """
         return self.kvstore.query_item(
