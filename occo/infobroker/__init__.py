@@ -61,4 +61,25 @@ Example
 
 from provider import *
 
-main_info_broker = None
+class MainInfoBroker(object):
+    """
+    Proxy object for the main, singleton info broker.
+
+    Storing a simple reference to the main info broker is insufficient. In this
+    case, the order of processing and instantiating the configured architecture
+    affects what objects see as the main info broker--most of the time
+    :data:`None`.
+
+    Using a proxy implements late binding: objects will see the real info broker
+    whenever they try to use it.
+
+    This implies, that objects cannot *use* the main info broker in their
+    ``__init__`` method. They can cache it however (``self.ib = ...``), that's
+    the point of using a proxy.
+    """
+    def __getattribute__(self, name):
+        global real_main_info_broker
+        return real_main_info_broker.__getattribute__(name)
+
+real_main_info_broker = None
+main_info_broker = MainInfoBroker()

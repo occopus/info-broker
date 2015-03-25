@@ -250,7 +250,7 @@ class InfoProvider(object):
         self.__dict__.update(config)
         if config.get('main_info_broker', False):
             import occo.infobroker
-            occo.infobroker.main_info_broker = self
+            occo.infobroker.real_main_info_broker = self
 
     def get(self, key, *args, **kwargs):
         """
