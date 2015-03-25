@@ -38,18 +38,9 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
     The ``UDS`` will instantiate its backend upon construction, passing through
     parameters specified in ``backend_config``.
 
-    .. todo:: Instantiating the backend here may not be the best option.
-        Probably the caller should instantiate it as necessary, and specify
-        only a reference to it.
-
-        There is also information duplication: the protocol is specified for
-        both the UDS and the backend kvstore. Maybe it would be possible to
-        instantiate the correct UDS based on the *type* of the *backend*. Or
-        something like this.
     """
-    def __init__(self, info_broker, **backend_config):
-        self.kvstore = KeyValueStore(**backend_config)
-        self.ib = info_broker
+    def __init__(self):
+        self.ib = ib.main_info_broker
 
     def infra_description_key(self, infra_id):
         """
@@ -138,7 +129,7 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
             :param str user_id: User id (duh).
 
         .. todo:: Sphinx structural problem: it cannot solve the class reference
-            above. This seems to be a clue...
+            above. This seems to be a clue for the ibkeys problems...
 
         """
         return self.kvstore.query_item(
@@ -250,6 +241,10 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
 
 @factory.register(UDS, 'dict')
 class DictUDS(UDS):
+    def __init__(self, **backend_config):
+        super(DictUDS, self).__init__()
+        backend_config.setdefault('protocol', 'dict')
+        self.kvstore = KeyValueStore(**backend_config)
     def add_infrastructure(self, static_description):
         """
         Stores the static description of an infrastructure in the key-value
@@ -287,6 +282,10 @@ class DictUDS(UDS):
 
 @factory.register(UDS, 'redis')
 class RedisUDS(UDS):
+    def __init__(self, **backend_config):
+        super(RedisUDS, self).__init__()
+        backend_config.setdefault('protocol', 'redis')
+        self.kvstore = KeyValueStore(**backend_config)
     def get_one_definition(self, node_type, preselected_backend_id):
         # TODO implement exploiting redis features
         # TODO call super() instead of passing until implemented properly

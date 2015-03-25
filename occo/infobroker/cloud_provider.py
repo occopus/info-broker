@@ -27,8 +27,8 @@ class CloudInfoProvider(ib.InfoProvider):
     .. todo:: Either the naming of this class is wrong, or some of the
         handlers need to be moved elsewhere.
     """
-    def __init__(self, info_broker, service_composer, cloud_handler):
-        self.ib = info_broker
+    def __init__(self, service_composer, cloud_handler):
+        self.ib = ib.main_info_broker
         self.ch = cloud_handler
         self.sc = service_composer
 
