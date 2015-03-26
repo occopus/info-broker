@@ -315,8 +315,8 @@ class RedisUDS(UDS):
         description.
         """
         node_id = instance_data['node_id']
-        infra_key = self.infra_key(infra_id, True)
-        infra_state = self.infra_state(infra_id)
+        infra_key = self.infra_state_key(infra_id)
+        infra_state = self.get_infrastructure_state(infra_id)
         node_list = infra_state.setdefault(node_name, dict())
         node_list[node_id] = instance_data
         self.kvstore.set_item(infra_key, infra_state)
