@@ -286,10 +286,10 @@ class RedisUDS(UDS):
         super(RedisUDS, self).__init__()
         backend_config.setdefault('protocol', 'redis')
         self.kvstore = KeyValueStore(**backend_config)
-    def get_one_definition(self, node_type, preselected_backend_id):
-        # TODO implement exploiting redis features
-        # TODO call super() instead of passing until implemented properly
-        pass
+    #def get_one_definition(self, node_type, preselected_backend_id):
+    #    # TODO implement exploiting redis features
+    #    # TODO call super() instead of passing until implemented properly
+    #    pass
 
     def add_infrastructure(self, static_description):
         """
