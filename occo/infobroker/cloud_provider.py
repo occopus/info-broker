@@ -89,4 +89,15 @@ class CloudInfoProvider(ib.InfoProvider):
 
     @ib.provides('node.attribute')
     def nodeattr(self, node_id, attribute):
+        """
+        .. ibkey::
+            Query node attribute from the ServiceComposer.
+
+            :param str node_id: The identifier of the node instance.
+            :param attribute: Attribute specification.
+            :type attribute: Dotted string or a list of strings.
+
+            :returns: Node attribute as defined by the actual service composer.
+
+        """
         return self.sc.get_node_attribute(node_id, attribute)
