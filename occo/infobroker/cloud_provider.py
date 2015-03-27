@@ -89,4 +89,4 @@ class CloudInfoProvider(ib.InfoProvider):
 
     @ib.provides('node.attribute')
     def nodeattr(self, node_id, attribute):
-        return attribute
+        return self.sc.get_node_attribute(node_id, attribute)
