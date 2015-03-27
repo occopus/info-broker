@@ -86,3 +86,7 @@ class CloudInfoProvider(ib.InfoProvider):
             for instance in node.itervalues():
                 instance['state'] = self.ib.get('node.state', instance)
         return instances
+
+    @ib.provides('node.attribute')
+    def nodeattr(self, node_id, attribute):
+        return attribute
