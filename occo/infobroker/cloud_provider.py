@@ -63,10 +63,8 @@ class CloudInfoProvider(ib.InfoProvider):
             :param infra_id: Infrastructure identifier.
             :returns: (:class:`bool`) Whether the infrastructure has started.
 
-        .. todo:: Fixup this query when the :ref:`Service Composer
-            <servicecomposer>` has been implemented.
         """
-        return infra_id in self.sc.environments
+        return self.sc.environment_exists(infra_id)
 
     @ib.provides('infrastructure.state')
     def infra_state(self, infra_id, **kwargs):
