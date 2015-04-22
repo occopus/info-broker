@@ -176,6 +176,32 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
         """
         return self.kvstore.query_item(self.infra_state_key(infra_id), dict())
 
+    @ib.provides('node.find')
+    def findnodes(self, infra_id=None, name=None):
+        from occo.util import flatten
+        def extract_nodes(infra_id):
+            infrastate = self.get_infrastructure_state(infra_id)
+            if name:
+                return infrastate[name].itervalues() \
+                    if name in infrastate \
+                    else []
+            else:
+                return flatten(i.itervalues()
+                               for i in infrastate.itervalues())
+
+        if infra_id:
+            nodes = extract_nodes(infra_id)
+        else:
+            def cut_id(s):
+                parts = s.split(':')
+                return parts[0] if len(parts) == 2 else parts[1]
+
+            nodes = flatten(
+                extract_nodes(i)
+                for i in self.kvstore.enumerate('infra:*:state', cut_id))
+
+        return list(nodes)
+
     def service_composer_key(self, sc_id):
         """
         Creates a backend key referencing a service composer's instance
