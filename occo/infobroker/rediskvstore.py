@@ -116,3 +116,12 @@ class RedisKVStore(kvs.KeyValueStore):
     def _contains_key(self, key):
         backend, key = self.transform_key(key)
         return self.backend.exists(key)
+
+    def _enumerate(self, pattern, **kwargs):
+        if callable(pattern):
+            import itertools as it
+            backend, pattern = self.transform_key('')
+            return it.ifilter(pattern, backend.keys('*'))
+        else:
+            backend, pattern = self.transform_key(pattern)
+            return backend.keys(pattern)

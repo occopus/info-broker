@@ -17,6 +17,7 @@ This module also provides a naive implementation using :class:`dict`.
 __all__ = ['KeyValueStore', 'KeyValueStoreProvider', 'DictKVStore']
 
 import occo.infobroker as ib
+import occo.util as util
 import occo.util.factory as factory
 import yaml
 import logging
@@ -76,6 +77,15 @@ class KeyValueStore(factory.MultiBackend):
         """ Convenience alias to :meth:`has_key`. """
         return self.has_key(key)
 
+    def _enumerate(self, pattern, **kwargs):
+        raise NotImplementedError()
+
+    def enumerate(self, pattern, transform=util.identity, **kwargs):
+        return (transform(k) for k in self._enumerate(pattern, **kwargs))
+
+    def listkeys(self, pattern, transform=util.identity, **kwargs):
+        return list(self.enumerate(pattern, transform, **kwargs))
+
 @factory.register(KeyValueStore, 'dict')
 class DictKVStore(KeyValueStore):
     """
@@ -121,6 +131,15 @@ class DictKVStore(KeyValueStore):
         """
         with self.lock:
             return key in self.backend
+
+    def _enumerate(self, pattern, **kwargs):
+        if callable(pattern):
+            return (k for k in self.backend.iterkeys()
+                    if pattern(k))
+        else:
+            from fnmatch import fnmatch
+            return (k for k in self.backend.iterkeys()
+                    if fnmatch(k, pattern))
 
 @ib.provider
 class KeyValueStoreProvider(ib.InfoProvider):
