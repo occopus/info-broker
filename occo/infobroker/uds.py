@@ -179,7 +179,7 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
 
     @ib.provides('node.find_one')
     def find_one_instance(self, **node_spec):
-        nodes = self.findnodes(**node_spec)
+        nodes = self.findinstances(**node_spec)
 
         if len(nodes) == 0:
             raise ValueError('There are no nodes matching the given criteria.',
@@ -229,7 +229,7 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
         name = node_spec.get('name')
         node_id = node_spec.get('node_id')
 
-        nodes = self._filtered_infra(node_spec)
+        nodes = self._filtered_infra(infra_id, name)
         return self._filter_by_nodeid(nodes, node_id)
 
     def service_composer_key(self, sc_id):
