@@ -176,6 +176,17 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
         """
         return self.kvstore.query_item(self.infra_state_key(infra_id), dict())
 
+    @ib.provides('node.find_one')
+    def findone(self, infra_id, server_name):
+        ids = self.findnodes(infra_id, server_name)
+        if len(ids) == 0:
+            raise ValueError('There are no nodes matching the given criteria.',
+                             infra_id, server_name)
+        elif len(ids) > 1:
+            warnings.warn('Multiple nodes found with the same name. '
+                          'Using the first one.', UserWarning)
+        return ids[0]
+
     @ib.provides('node.find')
     def findnodes(self, infra_id=None, name=None):
         from occo.util import flatten
