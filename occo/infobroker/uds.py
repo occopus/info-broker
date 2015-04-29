@@ -18,6 +18,7 @@ __all__ = ['UDS']
 import occo.util.factory as factory
 import occo.infobroker as ib
 from occo.infobroker.kvstore import KeyValueStore
+from occo.util import flatten
 import logging
 
 log = logging.getLogger('occo.infobroker.uds')
@@ -176,42 +177,65 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
         """
         return self.kvstore.query_item(self.infra_state_key(infra_id), dict())
 
+    @ib.provides('node.instance_attribute')
+    def inst_attr(self, inst_key, **node_spec):
+        return ib.main_info_broker.get(
+            inst_key, self.find_one_instance(**node_spec))
+
     @ib.provides('node.find_one')
-    def findone(self, infra_id, server_name):
-        ids = self.findnodes(infra_id, server_name)
-        if len(ids) == 0:
+    def find_one_instance(self, **node_spec):
+        nodes = self.findnodes(**node_spec)
+
+        if len(nodes) == 0:
             raise ValueError('There are no nodes matching the given criteria.',
-                             infra_id, server_name)
-        elif len(ids) > 1:
+                             node_spec)
+        elif len(nodes) > 1:
             warnings.warn('Multiple nodes found with the same name. '
                           'Using the first one.', UserWarning)
-        return ids[0]
+        return nodes[0]
+
+    def _extract_nodes(self, infra_id, name):
+        infrastate = self.get_infrastructure_state(infra_id)
+        if name:
+            return infrastate[name].itervalues() \
+                if name in infrastate \
+                else []
+        else:
+            return flatten(i.itervalues()
+                           for i in infrastate.itervalues())
+
+    def _filtered_infra(self, infra_id, name):
+        def cut_id(s):
+            parts = s.split(':')
+            return parts[0] if len(parts) == 2 else parts[1]
+
+        infra_ids = \
+            [infra_id] if infra_id \
+            else self.kvstore.enumerate('infra:*:state', cut_id)
+
+        return flatten(self._extract_nodes(i, name) for i in infra_ids)
+
+    def _filter_by_nodeid(self, nodes, node_id):
+        if node_id:
+            return [node for i in nodes if node['node_id'] == node_id]
+        else:
+            return list(nodes)
 
     @ib.provides('node.find')
-    def findnodes(self, infra_id=None, name=None):
-        from occo.util import flatten
-        def extract_nodes(infra_id):
-            infrastate = self.get_infrastructure_state(infra_id)
-            if name:
-                return infrastate[name].itervalues() \
-                    if name in infrastate \
-                    else []
-            else:
-                return flatten(i.itervalues()
-                               for i in infrastate.itervalues())
+    def findinstances(self, **node_spec):
+        return self._find_instances(**node_spec)
 
-        if infra_id:
-            nodes = extract_nodes(infra_id)
-        else:
-            def cut_id(s):
-                parts = s.split(':')
-                return parts[0] if len(parts) == 2 else parts[1]
+    def _find_instances(self, **node_spec):
+        """
+        Find nodes by search criteria. This method can be overridden in a
+        derived class for optimization.
+        """
+        infra_id = node_spec.get('infra_id')
+        name = node_spec.get('name')
+        node_id = node_spec.get('node_id')
 
-            nodes = flatten(
-                extract_nodes(i)
-                for i in self.kvstore.enumerate('infra:*:state', cut_id))
-
-        return list(nodes)
+        nodes = self._filtered_infra(node_spec)
+        return self._filter_by_nodeid(nodes, node_id)
 
     def service_composer_key(self, sc_id):
         """
