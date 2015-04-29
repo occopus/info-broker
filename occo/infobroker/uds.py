@@ -177,11 +177,6 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
         """
         return self.kvstore.query_item(self.infra_state_key(infra_id), dict())
 
-    @ib.provides('node.instance_attribute')
-    def inst_attr(self, inst_key, **node_spec):
-        return ib.main_info_broker.get(
-            inst_key, self.find_one_instance(**node_spec))
-
     @ib.provides('node.find_one')
     def find_one_instance(self, **node_spec):
         nodes = self.findnodes(**node_spec)
