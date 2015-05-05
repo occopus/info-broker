@@ -48,7 +48,7 @@ class CloudInfoProvider(ib.InfoProvider):
                 and the :meth:`Service Composer <n/a>`
         """
         ch_state = self.ib.get('node.resource.state', instance_data)
-        sc_state = self.sc.get_node_state(instance_data)
+        sc_state = self.ib.get('node.service.state', instance_data)
         # TODO standardize states for both sources
         # TODO calculate overall state from the two sub-states
         return "{0}:{1}".format(ch_state, sc_state)
