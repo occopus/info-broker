@@ -212,7 +212,7 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
 
     def _filter_by_nodeid(self, nodes, node_id):
         if node_id:
-            return [node for i in nodes if node['node_id'] == node_id]
+            return [node for node in nodes if node['node_id'] == node_id]
         else:
             return list(nodes)
 
