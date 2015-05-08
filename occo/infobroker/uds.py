@@ -19,7 +19,7 @@ import occo.util.factory as factory
 import occo.infobroker as ib
 from occo.infobroker.kvstore import KeyValueStore
 from occo.util import flatten
-import logging
+import logging, warnings
 
 log = logging.getLogger('occo.infobroker.uds')
 
