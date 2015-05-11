@@ -14,8 +14,7 @@ import logging.config
 import uuid
 import occo.util as util
 
-with open(util.rel_to_file('test_remote.yaml')) as f:
-    cfg = config.DefaultYAMLConfig(f)
+cfg = config.DefaultYAMLConfig(util.rel_to_file('test_remote.yaml'))
 
 logging.config.dictConfig(cfg.logging)
 

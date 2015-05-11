@@ -7,11 +7,11 @@ import unittest
 
 class RKVSTest(unittest.TestCase):
     def setUp(self):
-	with open(util.rel_to_file("rediskvstore_demo.yaml"), 'r') as stream:
-	    self.data=yaml.load(stream)
+        with open(util.rel_to_file("rediskvstore_demo.yaml"), 'r') as stream:
+            self.data=yaml.load(stream)
     def test_inst(self):
-	self.store=kvs.KeyValueStore(**self.data)
+        self.store=kvs.KeyValueStore.instantiate(**self.data)
     def test_setget(self):
-	self.store=kvs.KeyValueStore(**self.data)
-	self.store.set_item('alma', 'korte')
-	self.assertEqual(self.store.query_item('alma'), 'korte')
+        self.store=kvs.KeyValueStore.instantiate(**self.data)
+        self.store.set_item('alma', 'korte')
+        self.assertEqual(self.store.query_item('alma'), 'korte')

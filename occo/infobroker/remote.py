@@ -66,7 +66,7 @@ class RemoteProviderStub(ib.InfoProvider):
     """
     def __init__(self, rpc_config):
         super(RemoteProviderStub, self).__init__()
-        self.backend = comm.RPCProducer(**rpc_config)
+        self.backend = comm.RPCProducer.instantiate(**rpc_config)
 
     def get(self, key, *args, **kwargs):
         """
@@ -89,7 +89,8 @@ class RemoteProviderSkeleton(object):
     """
     def __init__(self, backend_provider, rpc_config):
         self.backend_provider = backend_provider
-        self.consumer = comm.EventDrivenConsumer(self.callback, **rpc_config)
+        self.consumer = comm.EventDrivenConsumer.instantiate(
+            processor=self.callback, **rpc_config)
 
     def callback(self, msg, *args, **kwargs):
         """

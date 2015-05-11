@@ -13,48 +13,47 @@ import threading
 import logging.config
 import uuid
 
-with open(util.rel_to_file('test_kvstore.yaml')) as f:
-    cfg = config.DefaultYAMLConfig(f)
+cfg = config.DefaultYAMLConfig(util.rel_to_file('test_kvstore.yaml'))
 
 logging.config.dictConfig(cfg.logging)
 
 class KVSTest(unittest.TestCase):
     def test_inst_good(self):
-        self.assertEqual(kvs.KeyValueStore(protocol='dict').__class__,
+        self.assertEqual(kvs.KeyValueStore.instantiate(protocol='dict').__class__,
                          kvs.DictKVStore)
     def test_inst_bad(self):
         with self.assertRaises(util.ConfigurationError): 
-            p = kvs.KeyValueStore(protocol='nonexistent')
+            p = kvs.KeyValueStore.instantiate(protocol='nonexistent')
     def test_dict_set_1(self):
-        p = kvs.KeyValueStore(protocol='dict')
+        p = kvs.KeyValueStore.instantiate(protocol='dict')
         p.set_item('alma', 'korte')
     def test_dict_get_1(self):
-        p = kvs.KeyValueStore(protocol='dict')
+        p = kvs.KeyValueStore.instantiate(protocol='dict')
         p.set_item('alma', 'korte')
         self.assertEqual(p.query_item('alma'), 'korte')
     def test_dict_haskey_1(self):
-        p = kvs.KeyValueStore(protocol='dict')
+        p = kvs.KeyValueStore.instantiate(protocol='dict')
         p.set_item('alma', 'korte')
         self.assertTrue(p.has_key('alma'))
     def test_dict_set_2(self):
-        p = kvs.KeyValueStore(protocol='dict')
+        p = kvs.KeyValueStore.instantiate(protocol='dict')
         p['alma'] = 'korte'
     def test_dict_get_2(self):
-        p = kvs.KeyValueStore(protocol='dict')
+        p = kvs.KeyValueStore.instantiate(protocol='dict')
         p['alma'] = 'korte'
         self.assertEqual(p['alma'], 'korte')
     def test_dict_haskey_2(self):
-        p = kvs.KeyValueStore(protocol='dict')
+        p = kvs.KeyValueStore.instantiate(protocol='dict')
         p['alma'] = 'korte'
         self.assertTrue('alma' in p)
     def test_default_dict(self):
 	init_dict = {'alma':'korte', 'medve':'durva'}
-	p = kvs.KeyValueStore(protocol='dict', init_dict=init_dict)
+	p = kvs.KeyValueStore.instantiate(protocol='dict', init_dict=init_dict)
 	self.assertEqual(p['alma'], 'korte')
 
 class ProviderTest(unittest.TestCase):
     def setUp(self):
-        self.backend = kvs.KeyValueStore(protocol='dict')
+        self.backend = kvs.KeyValueStore.instantiate(protocol='dict')
         self.p = kvs.KeyValueStoreProvider(self.backend)
     def test_dict_set(self):
         self.backend['alma'] = 'korte'
