@@ -258,7 +258,10 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
         Selects a single implementation from a node type's implementation set.
 
         .. todo:: Refactor: extract into service. (See :meth:`nodedef`)
-        """
+
+        .. todo:: Refactor: accept list of preselected ids instead of a single
+            id. Then return single result, or choose among them according to
+            logic defined later.  """
         all_definitions = self.all_nodedef(node_type)
         if preselected_backend_id:
             return next(i for i in all_definitions
