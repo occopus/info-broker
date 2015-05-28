@@ -341,14 +341,17 @@ class DictUDS(UDS):
 
 @factory.register(UDS, 'redis')
 class RedisUDS(UDS):
+    """
+    Redis-based implementation of the UDS.
+
+    .. todo:: Implement (override):meth:`get_one_definition` exploiting Redis
+        features if possible/suitable.
+    """
+
     def __init__(self, **backend_config):
         super(RedisUDS, self).__init__()
         backend_config.setdefault('protocol', 'redis')
         self.kvstore = KeyValueStore.instantiate(**backend_config)
-    #def get_one_definition(self, node_type, preselected_backend_id):
-    #    # TODO implement exploiting redis features
-    #    # TODO call super() instead of passing until implemented properly
-    #    pass
 
     def add_infrastructure(self, static_description):
         """
