@@ -7,6 +7,7 @@
 import unittest
 from common import *
 import occo.util as util
+import occo.exceptions as exc
 import occo.util.config as config
 import occo.infobroker.kvstore as kvs
 import threading
@@ -22,7 +23,7 @@ class KVSTest(unittest.TestCase):
         self.assertEqual(kvs.KeyValueStore.instantiate(protocol='dict').__class__,
                          kvs.DictKVStore)
     def test_inst_bad(self):
-        with self.assertRaises(util.ConfigurationError): 
+        with self.assertRaises(exc.ConfigurationError):
             p = kvs.KeyValueStore.instantiate(protocol='nonexistent')
     def test_dict_set_1(self):
         p = kvs.KeyValueStore.instantiate(protocol='dict')
