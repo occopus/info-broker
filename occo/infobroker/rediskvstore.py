@@ -115,7 +115,7 @@ class RedisKVStore(kvs.KeyValueStore):
 
     def _contains_key(self, key):
         backend, key = self.transform_key(key)
-        return self.backend.exists(key)
+        return backend.exists(key)
 
     def _enumerate(self, pattern, **kwargs):
         if callable(pattern):
