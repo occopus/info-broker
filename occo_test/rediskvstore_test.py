@@ -43,3 +43,18 @@ class RKVSTest(unittest.TestCase):
         self.assertEqual(k.key, self.uuid)
         self.store.set_item(altkey, 'korte')
         self.assertTrue(self.store.has_key(altkey))
+    def test_listing(self):
+        tr = lambda x: x+x
+        self.store=kvs.KeyValueStore.instantiate(**self.data)
+        for k, v in {'x_tst_alma':'korte', 'x_tst_medve':'durva', 'x_tst_elme':'ize'}.iteritems():
+            self.store.set_item(k, v)
+        self.assertEqual(self.store.listkeys(pattern='x_tst_*e*', transform=tr),
+                         ['x_tst_medvex_tst_medve', 'x_tst_elmex_tst_elme'])
+    def test_listing_2(self):
+        tr = lambda x: x+x
+        pat = lambda x: x.startswith('x_tst_') and 'e' in x
+        self.store=kvs.KeyValueStore.instantiate(**self.data)
+        for k, v in {'x_tst_alma':'korte', 'x_tst_medve':'durva', 'x_tst_elme':'ize'}.iteritems():
+            self.store.set_item(k, v)
+        keys = self.store.listkeys(pattern=pat, transform=tr)
+        self.assertEqual(keys, ['x_tst_medvex_tst_medve', 'x_tst_elmex_tst_elme'])

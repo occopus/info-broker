@@ -25,6 +25,8 @@ class TestProviderA(ib.InfoProvider):
     @ib.logged(log.debug, two_records=True)
     @ib.provides("global.echo")
     def echo(self, msg, **kwargs):
+        if msg == 'parameter error':
+            raise ib.ArgumentError(msg)
         return msg
 
 @ib.provider

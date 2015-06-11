@@ -57,7 +57,7 @@ class KVSTest(unittest.TestCase):
         p = kvs.KeyValueStore.instantiate(protocol='dict', init_dict=init_dict)
         self.assertEqual(p.listkeys(pattern='*e*', transform=tr),
                          ['medvemedve', 'elmeelme'])
-    def test_listing(self):
+    def test_listing_2(self):
         tr = lambda x: x+x
         pat = lambda x: 'e' in x
         init_dict = {'alma':'korte', 'medve':'durva', 'elme':'ize'}

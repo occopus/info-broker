@@ -47,3 +47,12 @@ class RouterTest(unittest.TestCase):
                 self.cancel.set()
                 self.server.join()
 
+    def test_key400error(self):
+        with self.skeleton.consumer, self.provider.backend:
+            self.server.start()
+            try:
+                with self.assertRaises(ib.ArgumentError):
+                    self.provider.get('global.echo', 'parameter error')
+            finally:
+                self.cancel.set()
+                self.server.join()
