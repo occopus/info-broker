@@ -48,19 +48,32 @@ class KVSTest(unittest.TestCase):
         p['alma'] = 'korte'
         self.assertTrue('alma' in p)
     def test_default_dict(self):
-	init_dict = {'alma':'korte', 'medve':'durva'}
-	p = kvs.KeyValueStore.instantiate(protocol='dict', init_dict=init_dict)
-	self.assertEqual(p['alma'], 'korte')
-
+        init_dict = {'alma':'korte', 'medve':'durva'}
+        p = kvs.KeyValueStore.instantiate(protocol='dict', init_dict=init_dict)
+        self.assertEqual(p['alma'], 'korte')
+    def test_listing(self):
+        tr = lambda x: x+x
+        init_dict = {'alma':'korte', 'medve':'durva', 'elme':'ize'}
+        p = kvs.KeyValueStore.instantiate(protocol='dict', init_dict=init_dict)
+        self.assertEqual(p.listkeys(pattern='*e*', transform=tr),
+                         ['medvemedve', 'elmeelme'])
+    def test_listing(self):
+        tr = lambda x: x+x
+        pat = lambda x: 'e' in x
+        init_dict = {'alma':'korte', 'medve':'durva', 'elme':'ize'}
+        p = kvs.KeyValueStore.instantiate(protocol='dict', init_dict=init_dict)
+        self.assertEqual(p.listkeys(pattern=pat, transform=tr),
+                         ['medvemedve', 'elmeelme'])
 class ProviderTest(unittest.TestCase):
     def setUp(self):
         self.backend = kvs.KeyValueStore.instantiate(protocol='dict')
         self.p = kvs.KeyValueStoreProvider(self.backend)
-    def test_dict_set(self):
-        self.backend['alma'] = 'korte'
     def test_dict_get(self):
         self.backend['alma'] = 'korte'
         self.assertEqual(self.p.get('alma'), 'korte')
-#    def test_dict_haskey(self):
-#        self.p['alma'] = 'korte'
-#        self.assertTrue('alma' in self.p)
+    def test_backendtype(self):
+        self.assertEqual(self.p.get('uds.backend_type'), 'DictKVStore')
+    def test_canget(self):
+        self.backend['alma'] = 'korte'
+        self.assertTrue(self.p.can_get('alma'))
+        self.assertFalse(self.p.can_get('korte'))

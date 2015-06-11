@@ -162,3 +162,9 @@ class KeyValueStoreProvider(ib.InfoProvider):
     @property
     def iterkeys(self):
         raise NotImplementedError()
+    @ib.provides('uds.backend_type')
+    def backend_type(self):
+        """
+    	This is only for debugging and testing.
+        """
+        return str(self.backend.__class__.__name__)
