@@ -303,7 +303,7 @@ class DictUDS(UDS):
     def __init__(self, **backend_config):
         super(DictUDS, self).__init__()
         backend_config.setdefault('protocol', 'dict')
-        self.kvstore = KeyValueStore(**backend_config)
+        self.kvstore = KeyValueStore.instantiate(**backend_config)
     def add_infrastructure(self, static_description):
         """
         Stores the static description of an infrastructure in the key-value
