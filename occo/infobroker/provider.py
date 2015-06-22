@@ -354,6 +354,8 @@ class InfoRouter(InfoProvider):
         responsible = self._find_responsible(key)
         if responsible is None:
             raise KeyNotFoundError(key)
+        elif responsible is self:
+            return responsible._immediate_get(key, *args, **kwargs)
         else:
             return responsible.get(key, *args, **kwargs)
 
