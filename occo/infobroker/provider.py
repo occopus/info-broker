@@ -366,4 +366,4 @@ class InfoRouter(InfoProvider):
         """ Overrides :meth:`InfoRouter.iterkeys` """
         mykeys = super(InfoRouter, self).iterkeys
         sub_keys = (i.iterkeys for i in self.sub_providers)
-        return flatten(it.chain(mykeys, sub_keys))
+        return flatten(it.chain([mykeys], sub_keys))
