@@ -354,6 +354,8 @@ class InfoRouter(InfoProvider):
         responsible = self._find_responsible(key)
         if responsible is None:
             raise KeyNotFoundError(key)
+        elif responsible is self:
+            return responsible._immediate_get(key, *args, **kwargs)
         else:
             return responsible.get(key, *args, **kwargs)
 
@@ -366,4 +368,4 @@ class InfoRouter(InfoProvider):
         """ Overrides :meth:`InfoRouter.iterkeys` """
         mykeys = super(InfoRouter, self).iterkeys
         sub_keys = (i.iterkeys for i in self.sub_providers)
-        return flatten(it.chain(mykeys, sub_keys))
+        return flatten(it.chain([mykeys], sub_keys))

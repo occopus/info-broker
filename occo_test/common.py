@@ -7,9 +7,12 @@
 import occo.infobroker as ib
 import dateutil.tz as tz
 import datetime
+import logging
 
 PROVIDED_A = ['global.brokertime.utc', 'global.brokertime', 'global.echo']
 PROVIDED_B = ['global.echo', 'global.hello']
+
+log = logging.getLogger('occo.test')
 
 @ib.provider
 class TestProviderA(ib.InfoProvider):
@@ -19,8 +22,11 @@ class TestProviderA(ib.InfoProvider):
     @ib.provides("global.brokertime")
     def gettime(self, **kwargs):
         return 'BT %s'%datetime.datetime.now(tz.tzlocal()).isoformat()
+    @ib.logged(log.debug, two_records=True)
     @ib.provides("global.echo")
     def echo(self, msg, **kwargs):
+        if msg == 'parameter error':
+            raise ib.ArgumentError(msg)
         return msg
 
 @ib.provider
