@@ -48,12 +48,6 @@ class KVSTest(unittest.TestCase):
         p['alma'] = 'korte'
         self.assertTrue('alma' in p)
     def test_default_dict(self):
-<<<<<<< Updated upstream
-	init_dict = {'alma':'korte', 'medve':'durva'}
-	p = kvs.KeyValueStore.instantiate(protocol='dict', init_dict=init_dict)
-	self.assertEqual(p['alma'], 'korte')
-
-=======
         init_dict = {'alma':'korte', 'medve':'durva'}
         p = kvs.KeyValueStore.instantiate(protocol='dict', init_dict=init_dict)
         self.assertEqual(p['alma'], 'korte')
@@ -76,7 +70,6 @@ class KVSTest(unittest.TestCase):
         p.delete_key('alma')
         self.assertTrue('alma' not in p)
         
->>>>>>> Stashed changes
 class ProviderTest(unittest.TestCase):
     def setUp(self):
         self.backend = kvs.KeyValueStore.instantiate(protocol='dict')
