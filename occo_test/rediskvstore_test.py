@@ -15,3 +15,8 @@ class RKVSTest(unittest.TestCase):
         self.store=kvs.KeyValueStore.instantiate(**self.data)
         self.store.set_item('alma', 'korte')
         self.assertEqual(self.store.query_item('alma'), 'korte')
+    def test_deletekey(self):
+        self.store=kvs.KeyValueStore.instantiate(**self.data)
+        self.store.set_item('alma', 'korte')
+        self.store.delete_key('alma')
+        self.assertEqual(self.store.query_item('alma'), None)
