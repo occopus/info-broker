@@ -48,10 +48,35 @@ class KVSTest(unittest.TestCase):
         p['alma'] = 'korte'
         self.assertTrue('alma' in p)
     def test_default_dict(self):
+<<<<<<< Updated upstream
 	init_dict = {'alma':'korte', 'medve':'durva'}
 	p = kvs.KeyValueStore.instantiate(protocol='dict', init_dict=init_dict)
 	self.assertEqual(p['alma'], 'korte')
 
+=======
+        init_dict = {'alma':'korte', 'medve':'durva'}
+        p = kvs.KeyValueStore.instantiate(protocol='dict', init_dict=init_dict)
+        self.assertEqual(p['alma'], 'korte')
+    def test_listing(self):
+        tr = lambda x: x+x
+        init_dict = {'alma':'korte', 'medve':'durva', 'elme':'ize'}
+        p = kvs.KeyValueStore.instantiate(protocol='dict', init_dict=init_dict)
+        self.assertEqual(p.listkeys(pattern='*e*', transform=tr),
+                         ['medvemedve', 'elmeelme'])
+    def test_listing_2(self):
+        tr = lambda x: x+x
+        pat = lambda x: 'e' in x
+        init_dict = {'alma':'korte', 'medve':'durva', 'elme':'ize'}
+        p = kvs.KeyValueStore.instantiate(protocol='dict', init_dict=init_dict)
+        self.assertEqual(p.listkeys(pattern=pat, transform=tr),
+                         ['medvemedve', 'elmeelme'])
+    def test_delete_key(self):
+        p = kvs.KeyValueStore.instantiate(protocol='dict')
+        p['alma'] = 'korte'
+        p.delete_key('alma')
+        self.assertTrue('alma' not in p)
+        
+>>>>>>> Stashed changes
 class ProviderTest(unittest.TestCase):
     def setUp(self):
         self.backend = kvs.KeyValueStore.instantiate(protocol='dict')

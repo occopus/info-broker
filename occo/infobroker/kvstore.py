@@ -144,7 +144,7 @@ class DictKVStore(KeyValueStore):
             return (k for k in self.backend.iterkeys()
                     if fnmatch(k, pattern))
     
-    def delete_key():
+    def delete_key(self, key):
         """
         Drop key from key-value store
         """
