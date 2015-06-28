@@ -85,7 +85,10 @@ class KeyValueStore(factory.MultiBackend):
 
     def listkeys(self, pattern, transform=util.identity, **kwargs):
         return list(self.enumerate(pattern, transform, **kwargs))
-
+    
+    def delete_key(self, key):
+        raise NotImplementedError()
+    
 @factory.register(KeyValueStore, 'dict')
 class DictKVStore(KeyValueStore):
     """
@@ -140,7 +143,14 @@ class DictKVStore(KeyValueStore):
             from fnmatch import fnmatch
             return (k for k in self.backend.iterkeys()
                     if fnmatch(k, pattern))
-
+    
+    def delete_key():
+        """
+        Drop key from key-value store
+        """
+        with self.lock:
+                self.backend.pop(key, None)
+                
 @ib.provider
 class KeyValueStoreProvider(ib.InfoProvider):
     """

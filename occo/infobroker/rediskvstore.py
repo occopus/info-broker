@@ -125,3 +125,7 @@ class RedisKVStore(kvs.KeyValueStore):
         else:
             backend, pattern = self.transform_key(pattern)
             return backend.keys(pattern)
+
+    def delete_key(self, key):
+        with self.lock:
+            self.backend.delete(key)
