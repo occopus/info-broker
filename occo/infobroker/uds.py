@@ -17,6 +17,7 @@ __all__ = ['UDS']
 
 import occo.util.factory as factory
 import occo.infobroker as ib
+from occo.infobroker.brokering import NodeDefinitionSelector
 from occo.infobroker.kvstore import KeyValueStore
 from occo.util import flatten
 import logging, warnings
@@ -101,7 +102,8 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
         return self.kvstore.query_item(self.node_def_key(node_type))
 
     @ib.provides('node.definition')
-    def nodedef(self, node_type, preselected_backend_id=None):
+    def nodedef(self, node_type, preselected_backend_ids=[],
+                strategy='random', **kwargs):
         """
         .. ibkey::
             Queries the implementations of a node type, and chooses exactly
@@ -109,14 +111,8 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
 
             :param str node_type: The identifier of the node's type (see
                 :ref:`nodedescription`\ /``type``.
-
-        .. todo::
-            This is not okay. This kind of "brokering" must be done by an
-            external service, and should be initiated by the
-            :ref:`InfraProcessor <IP>`. It has more information than this
-            method.
         """
-        return self.get_one_definition(node_type, preselected_backend_id)
+        return self.get_one_definition(node_type, **kwargs)
 
     @ib.provides('backends.auth_data')
     def auth_data(self, backend_id, user_id):
@@ -253,22 +249,28 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
         """
         return self.kvstore.query_item(self.service_composer_key(sc_id), dict())
 
-    def get_one_definition(self, node_type, preselected_backend_id):
-        """
-        Selects a single implementation from a node type's implementation set.
-
-        .. todo:: Refactor: extract into service. (See :meth:`nodedef`)
-
-        .. todo:: Refactor: accept list of preselected ids instead of a single
-            id. Then return single result, or choose among them according to
-            logic defined later.  """
+    def get_filtered_definition_list(self, node_type,
+                                     preselected_backend_ids=[]):
         all_definitions = self.all_nodedef(node_type)
-        if preselected_backend_id:
-            return next(i for i in all_definitions
-                        if i['backend_id'] == preselected_backend_id)
-        else:
-            import random
-            return random.choice(all_definitions)
+        if preselected_backend_ids:
+            if isinstance(preselected_backend_ids, basestring):
+                preselected_backend_ids = [preselected_backend_ids]
+            all_definitions = (i for i in all_definitions
+                               if i['backend_id'] in preselected_backend_ids)
+        return list(all_definitions)
+
+    def get_one_definition(self, node_type, preselected_backend_ids=[],
+                           strategy='random', **kwargs):
+        """
+        Selects a single implementation from a node type's implementation set
+        using a specific decision strategy.
+        """
+
+        all_definitions = self.get_filtered_definition_list(
+            node_type, preselected_backend_ids)
+        selector = NodeDefinitionSelector.instantiate(
+            protocol=strategy, **kwargs)
+        return selector.select_definition(all_definitions)
 
     def add_infrastructure(self, static_description):
         """
