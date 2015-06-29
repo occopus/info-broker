@@ -64,7 +64,7 @@ class CloudInfoProvider(ib.InfoProvider):
             :returns: (:class:`bool`) Whether the infrastructure has started.
 
         """
-        return self.sc.environment_exists(infra_id)
+        return self.sc.infrastructure_exists(infra_id)
 
     @ib.provides('infrastructure.state')
     def infra_state(self, infra_id, **kwargs):
