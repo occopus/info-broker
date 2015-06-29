@@ -26,20 +26,11 @@ __all__ = ['provider', 'provides', 'InfoProvider', 'InfoRouter',
            'KeyNotFoundError', 'ArgumentError', 'logged']
 
 from occo.util import flatten, identity
+from occo.exceptions import KeyNotFoundError, ArgumentError
 from inspect import getmembers
 from functools import wraps
 import itertools as it
 import yaml
-
-class KeyNotFoundError(KeyError):
-    """Thrown by :meth:`InfoProvider.get` functions when a given key cannot be
-    handled."""
-    pass
-
-class ArgumentError(ValueError):
-    """Thrown by :meth:`InfoProvider.get` functions when there is an error in
-    its arguments."""
-    pass
 
 EXTRA_DOC_TEMPLATE="""
 {indent}.. decl_ibkey::
