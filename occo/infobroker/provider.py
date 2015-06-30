@@ -63,8 +63,8 @@ def format_doc(key, orig_doc):
     result = EXTRA_DOC_TEMPLATE.format(indent=indent, key=key, orig_doc=orig_doc)
     return result
 
-class Provides(object):
-    # Documented in alias's docstring below (Sphinx peculiarity)
+class provides(object):
+    """Method decorator that marks methods to be gathered by ``@provider``."""
     def __init__(self, key):
         self.key = key
     def __call__(self, f):
@@ -73,8 +73,6 @@ class Provides(object):
         f.provided_key = self.key
         f.__doc__ = format_doc(self.key, f.__doc__)
         return f
-#: Method decorator that marks methods to be gathered by ``@provider``.
-provides = Provides
 
 class logged(object):
     """ Wraps the decorated method with logging events.
@@ -255,8 +253,8 @@ class InfoProvider(object):
 
         :raises KeyNotFoundError: if the given key is not supported.
 
-        .. todo:: Throughout the code: fix documentation: ``:raises:`` does is
-            not rendered properly, the exception type is not a hyperlink.
+        .. todo:: Throughout the code: fix documentation: ``:raises:`` is not
+          rendered properly, the exception type is not a hyperlink.
         """
         return self._immediate_get(key, *args, **kwargs)
 
@@ -269,8 +267,7 @@ class InfoProvider(object):
         return self._can_immediately_get(key)
 
     def __str__(self):
-        # TODO: % <- format
-        return '%s %s'%(self.__class__.__name__, self.keys)
+        return '%s %s'.format(self.__class__.__name__, self.keys)
 
     @property
     def iterkeys(self):
