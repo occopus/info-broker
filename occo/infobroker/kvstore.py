@@ -39,6 +39,7 @@ class KeyValueStore(factory.MultiBackend):
     """
     def __init__(self, catch_all=False, **kwargs):
         self.catch_all = catch_all
+
     def query_item(self, key, default=None):
         """
         Overridden in a derived class, return the value associated with the
@@ -50,29 +51,35 @@ class KeyValueStore(factory.MultiBackend):
 
         """
         raise NotImplementedError()
+
     def set_item(self, key, value):
         """
         Associate a value with a key.
         """
         raise NotImplementedError()
+
     def has_key(self, key):
         """
         :returns: whether the key can be handled by this key-value store. If
             ``catch_all`` is set, this method will always return :data:`True`.
         """
         return self.catch_all or self._contains_key(key)
+
     def _contains_key(self, key):
         """
         Overridden in a derived class, decides whether a key is in the
         key-value store. Used as a kernel function to :meth:`has_key`.
         """
         raise NotImplementedError()
+
     def __getitem__(self, key):
         """ Convenience alias to :meth:`get_item`. """
         return self.query_item(key)
+
     def __setitem__(self, key, value):
         """ Convenience alias to :meth:`set_item`. """
         return self.set_item(key, value)
+
     def __contains__(self, key):
         """ Convenience alias to :meth:`has_key`. """
         return self.has_key(key)
@@ -81,6 +88,8 @@ class KeyValueStore(factory.MultiBackend):
         raise NotImplementedError()
 
     def enumerate(self, pattern, transform=util.identity, **kwargs):
+        log.debug('Enumerating keys against pattern %r, Xform: %s',
+                  patter, getattr(transform, '__name__', repr(transform))
         return (transform(k) for k in self._enumerate(pattern, **kwargs))
 
     def listkeys(self, pattern, transform=util.identity, **kwargs):
@@ -117,7 +126,9 @@ class DictKVStore(KeyValueStore):
             emulates remote object querying.
         """
         with self.lock:
+            log.debug('Querying %r', key)
             return copy.deepcopy(self.backend.get(key, default))
+
     def set_item(self, key, value):
         """
         Associated the given value with the given key.
@@ -127,15 +138,18 @@ class DictKVStore(KeyValueStore):
             the value is queried.
         """
         with self.lock:
+            log.debug('Setting %r', key)
             self.backend[key] = value
     def _contains_key(self, key):
         """
         Decide whether a key is in this key-value store.
         """
         with self.lock:
+            log.debug('Checking %r', key)
             return key in self.backend
 
     def _enumerate(self, pattern, **kwargs):
+        log.debug('Listing keys against pattern %r', pattern)
         if callable(pattern):
             return (k for k in self.backend.iterkeys()
                     if pattern(k))
@@ -149,7 +163,8 @@ class DictKVStore(KeyValueStore):
         Drop key from key-value store
         """
         with self.lock:
-                self.backend.pop(key, None)
+            log.debug('Deleting %r', key)
+            self.backend.pop(key, None)
                 
 @ib.provider
 class KeyValueStoreProvider(ib.InfoProvider):
@@ -162,16 +177,20 @@ class KeyValueStoreProvider(ib.InfoProvider):
     """
     def __init__(self, backend):
         self.backend = backend
+
     def get(self, key):
         if self._can_immediately_get(key):
             return self._immediate_get(key)
         else:
             return self.backend.query_item(key)
+
     def can_get(self, key):
         return self._can_immediately_get(key) or self.backend.has_key(key)
+
     @property
     def iterkeys(self):
         raise NotImplementedError()
+
     @ib.provides('uds.backend_type')
     def backend_type(self):
         """
