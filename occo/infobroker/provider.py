@@ -31,6 +31,9 @@ from inspect import getmembers
 from functools import wraps
 import itertools as it
 import yaml
+import logging
+
+log = logging.getLogger('occo.infobroker')
 
 EXTRA_DOC_TEMPLATE="""
 {indent}.. decl_ibkey::
@@ -63,18 +66,16 @@ def format_doc(key, orig_doc):
     result = EXTRA_DOC_TEMPLATE.format(indent=indent, key=key, orig_doc=orig_doc)
     return result
 
-class Provides(object):
-    # Documented in alias's docstring below (Sphinx peculiarity)
+class provides(object):
+    """Method decorator that marks methods to be gathered by ``@provider``."""
     def __init__(self, key):
         self.key = key
     def __call__(self, f):
         # Store the provided information in the decorated method's attribute.
-        # This information will be used by InfoProvider
+        # This information will be used by the InfoProvider
         f.provided_key = self.key
         f.__doc__ = format_doc(self.key, f.__doc__)
         return f
-#: Method decorator that marks methods to be gathered by ``@provider``.
-provides = Provides
 
 class logged(object):
     """ Wraps the decorated method with logging events.
@@ -255,8 +256,8 @@ class InfoProvider(object):
 
         :raises KeyNotFoundError: if the given key is not supported.
 
-        .. todo:: Throughout the code: fix documentation: ``:raises:`` does is
-            not rendered properly, the exception type is not a hyperlink.
+        .. todo:: Throughout the code: fix documentation: ``:raises:`` is not
+          rendered properly, the exception type is not a hyperlink.
         """
         return self._immediate_get(key, *args, **kwargs)
 
@@ -269,8 +270,7 @@ class InfoProvider(object):
         return self._can_immediately_get(key)
 
     def __str__(self):
-        # TODO: % <- format
-        return '%s %s'%(self.__class__.__name__, self.keys)
+        return '%s %s'.format(self.__class__.__name__, self.keys)
 
     @property
     def iterkeys(self):
@@ -294,6 +294,7 @@ class InfoProvider(object):
 
         For details see :meth:`get`.
         """
+        log.debug('Querying key %r (%s)', key, self.__class__.__name__)
         if not self._can_immediately_get(key):
             raise KeyNotFoundError(self.__class__.__name__, key)
         return self.__class__.providers[key](self, *args, **kwargs)
@@ -328,20 +329,19 @@ class InfoRouter(InfoProvider):
 
     def _find_responsible(self, key):
         """Return the first provider that can handle the request; or None."""
+        log.debug('InfoRouter: looking for key: %r', key)
         return \
             self if self._can_immediately_get(key) \
             else next((i for i in self.sub_providers if i.can_get(key)), None)
 
     def __str__(self):
-        # TODO: % <- format
-        return '%s %s + [%s]'%(self.__class__.__name__,
-                             self.keys,
-                             ', '.join(it.imap(str, self.sub_providers)))
+        return '%s %s + [%s]'.format(
+            self.__class__.__name__,
+            self.keys,
+            ', '.join(it.imap(str, self.sub_providers)))
 
     def get(self, key, *args, **kwargs):
         """ Overrides :meth:`InfoRouter.get` """
-        # TODO: Rethink this `get` and `_find_responsible`. Isn't there a better
-        #       implementation? (Shorter/cleaner, not returning None.)
         responsible = self._find_responsible(key)
         if responsible is None:
             raise KeyNotFoundError(key)

@@ -47,6 +47,7 @@ class CloudInfoProvider(ib.InfoProvider):
                 <occo.cloudhandler.cloudhandler.CloudHandler.get_node_state>`
                 and the :meth:`Service Composer <n/a>`
         """
+        log.debug('Querying node state %r', instance_data['node_id'])
         ch_state = self.ib.get('node.resource.state', instance_data)
         sc_state = self.ib.get('node.service.state', instance_data)
         # TODO standardize states for both sources
@@ -64,6 +65,7 @@ class CloudInfoProvider(ib.InfoProvider):
             :returns: (:class:`bool`) Whether the infrastructure has started.
 
         """
+        log.debug('Checking infrastructure started %r', infra_id)
         return self.sc.infrastructure_exists(infra_id)
 
     @ib.provides('infrastructure.state')
@@ -78,8 +80,12 @@ class CloudInfoProvider(ib.InfoProvider):
                 A mapping of nodes to instances, each instance data updated
                 with the actual status of that instance.
             
+        .. todo:: The nested iteration in this method can be flattened _and_
+          parallelized. taking into consideration the time it takes to query
+          a node's state, this would be desirable.
         """
         instances = self.ib.get('infrastructure.node_instances', infra_id)
+        log.debug('Gathering states of nodes in infrastructure %r', infra_id)
         for node in instances.itervalues():
             for instance in node.itervalues():
                 instance['state'] = self.ib.get('node.state', instance)
@@ -98,4 +104,5 @@ class CloudInfoProvider(ib.InfoProvider):
             :returns: Node attribute as defined by the actual service composer.
 
         """
+        log.debug('Querying node attribute %r[%r]', node_id, attribute)
         return self.sc.get_node_attribute(node_id, attribute)

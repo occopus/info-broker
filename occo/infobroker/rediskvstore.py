@@ -100,24 +100,28 @@ class RedisKVStore(kvs.KeyValueStore):
 
     def transform_key(self, key):
         tkey = DBSelectorKey(key, self)
-        log.debug("Querying key %s", tkey)
+        log.debug("Accessing key: %s", tkey)
         return tkey.get_connection()
 
     def query_item(self, key, default=None):
+        log.debug('Querying %r', key)
         backend, key = self.transform_key(key)
         data = backend.get(key)
         retval = self.deserialize(data) if data else None
         return util.coalesce(retval, default)
 
     def set_item(self, key, value):
+        log.debug('Setting %r', key)
         backend, key = self.transform_key(key)
         backend.set(key, self.serialize(value) if value else None)
 
     def _contains_key(self, key):
+        log.debug('Checking %r', key)
         backend, key = self.transform_key(key)
         return backend.exists(key)
 
     def _enumerate(self, pattern, **kwargs):
+        log.debug('Listing keys against pattern %r', pattern)
         if callable(pattern):
             import itertools as it
             backend, _ = self.transform_key('')
@@ -127,5 +131,6 @@ class RedisKVStore(kvs.KeyValueStore):
             return backend.keys(pattern)
 
     def delete_key(self, key):
+        log.debug('Deleting %r', key)
         backend, key = self.transform_key(key)
         backend.delete(key)
