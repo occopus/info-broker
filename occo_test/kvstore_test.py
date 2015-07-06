@@ -64,6 +64,12 @@ class KVSTest(unittest.TestCase):
         p = kvs.KeyValueStore.instantiate(protocol='dict', init_dict=init_dict)
         self.assertEqual(p.listkeys(pattern=pat, transform=tr),
                          ['medvemedve', 'elmeelme'])
+    def test_delete_key(self):
+        p = kvs.KeyValueStore.instantiate(protocol='dict')
+        p['alma'] = 'korte'
+        p.delete_key('alma')
+        self.assertTrue('alma' not in p)
+
 class ProviderTest(unittest.TestCase):
     def setUp(self):
         self.backend = kvs.KeyValueStore.instantiate(protocol='dict')
