@@ -89,7 +89,7 @@ class KeyValueStore(factory.MultiBackend):
 
     def enumerate(self, pattern, transform=util.identity, **kwargs):
         log.debug('Enumerating keys against pattern %r, Xform: %s',
-                  patter, getattr(transform, '__name__', repr(transform))
+                  pattern, getattr(transform, '__name__', repr(transform)))
         return (transform(k) for k in self._enumerate(pattern, **kwargs))
 
     def listkeys(self, pattern, transform=util.identity, **kwargs):
