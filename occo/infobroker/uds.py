@@ -175,6 +175,12 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
 
     @ib.provides('node.find_one')
     def find_one_instance(self, **node_spec):
+        """
+        .. ibkey::
+            Finds the first node matching the given criteria.
+
+            See ``node.find`` for details.
+        """
         nodes = self.findinstances(**node_spec)
 
         if len(nodes) == 0:
@@ -214,6 +220,24 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
 
     @ib.provides('node.find')
     def findinstances(self, **node_spec):
+        """
+        .. ibkey::
+            Finds nodes matching the given criteria.
+
+            :param str infra_id: Infrastructure identifier
+            :param str node_id: Node instance identifier
+            :param str node_name: Node name as specified in the infrastructure
+                description
+
+            The result will be a list of instances matching *all* criteria.
+
+            It is advisable to always specify ``infra_id``---even if
+            ``node_id`` is specified---as it improves lookup time. (There is no
+            index for nodes at the time of writing, and so when ``infra_id`` is
+            not specified, all infrastructures in the database will be
+            scanned.)
+
+        """
         return self._find_instances(**node_spec)
 
     def _find_instances(self, **node_spec):
