@@ -62,6 +62,15 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
         """
         return 'infra:{0!s}:state'.format(infra_id)
 
+    def failed_nodes_key(self, infra_id):
+        """
+        Creates a backend key referencing a specific infrastructure's dynamic
+        state.
+
+        :param str infra_id: The internal key of the infrastructure.
+        """
+        return 'infra:{0!s}:failed_nodes'.format(infra_id)
+
     def auth_data_key(self, backend_id, user_id):
         """
         Creates a backend key referencing a user's stored authentication
@@ -310,17 +319,23 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
         """
         raise NotImplementedError()
 
-    def register_started_node(self, infra_id, node_id, instance_data):
+    def register_started_node(self, infra_id, node_name, instance_data):
         """
         Overridden in a derived class, registers a started node instance in an
         infrastructure's dynamic description.
         """
         raise NotImplementedError()
 
-    def remove_node(self, infra_id, node_name, instance_id):
+    def remove_nodes(self, infra_id, *node_ids):
         """
         Overridden in a derived class, removes a node instance from an
         infrastructure's dynamic description.
+        """
+        raise NotImplementedError()
+
+    def store_failed_nodes(self, infra_id, *instance_datas):
+        """
+        Store ``instance_data`` of failed nodes for later use.
         """
         raise NotImplementedError()
 
@@ -359,11 +374,39 @@ class DictUDS(UDS):
         node_list[node_id] = instance_data
         self.kvstore.set_item(infra_key, infra_state)
 
-    def remove_node(self, infra_id, node_name, instance_id):
+    def remove_nodes(self, infra_id, *node_ids):
         """
         Removes a node instance from an infrastructure's dynamic description.
         """
-        raise NotImplementedError()
+        log.info('Removing node instances from %r:\n%r', infra_id, node_ids)
+        if not node_ids:
+            return
+
+        infra_key = self.infra_state_key(infra_id)
+        infra_state = self.get_infrastructure_state(infra_id)
+        lookup = dict((node_id, node_name)
+                      for node_name, instlist in infra_state.iteritems()
+                      for node_id in instlist)
+        for i in node_ids:
+            try:
+                del infra_state[lookup[i]][i]
+            except KeyError:
+                raise KeyError('Instance does not exist', i)
+        self.kvstore.set_item(infra_key, infra_state)
+
+    def store_failed_nodes(self, infra_id, *instance_datas):
+        """
+        Store ``instance_data`` of failed nodes for later use.
+        """
+        log.info('Archiving failed node instances for %r:\n%r',
+                 infra_id, [i['node_id'] for i in instance_datas])
+        if not instance_datas:
+            return
+
+        infra_key = self.failed_nodes_key(infra_id)
+        failed_nodes = self.kvstore.query_item(infra_key, dict())
+        failed_nodes.update(dict((i['node_id'], i) for i in instance_datas))
+        self.kvstore.set_item(infra_key, failed_nodes)
 
 @factory.register(UDS, 'redis')
 class RedisUDS(UDS):
@@ -409,8 +452,36 @@ class RedisUDS(UDS):
         node_list[node_id] = instance_data
         self.kvstore.set_item(infra_key, infra_state)
 
-    def remove_node(self, infra_id, node_name, instance_id):
+    def remove_nodes(self, infra_id, *node_ids):
         """
         Removes a node instance from an infrastructure's dynamic description.
         """
-        raise NotImplementedError()
+        log.info('Removing node instances from %r:\n%r', infra_id, node_ids)
+        if not node_ids:
+            return
+
+        infra_key = self.infra_state_key(infra_id)
+        infra_state = self.get_infrastructure_state(infra_id)
+        lookup = dict((node_id, node_name)
+                      for node_name, instlist in infra_state.iteritems()
+                      for node_id in instlist)
+        for i in node_ids:
+            try:
+                del infra_state[lookup[i]][i]
+            except KeyError:
+                raise KeyError('Instance does not exist', i)
+        self.kvstore.set_item(infra_key, infra_state)
+
+    def store_failed_nodes(self, infra_id, *instance_datas):
+        """
+        Store ``instance_data`` of failed nodes for later use.
+        """
+        log.info('Archiving failed node instances for %r:\n%r',
+                 infra_id, [i['node_id'] for i in instance_datas])
+        if not instance_datas:
+            return
+
+        infra_key = self.failed_nodes_key(infra_id)
+        failed_nodes = self.kvstore.query_item(infra_key, dict())
+        failed_nodes.update(dict((i['node_id'], i) for i in instance_datas))
+        self.kvstore.set_item(infra_key, failed_nodes)
