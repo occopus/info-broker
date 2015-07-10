@@ -384,6 +384,11 @@ class DictUDS(UDS):
         """
         Store ``instance_data`` of failed nodes for later use.
         """
+        log.info('Archiving failed node instances for %r:\n%r',
+                 infra_id, [i['node_id'] for i in instance_datas])
+        if not instance_datas:
+            return
+
         infra_key = self.failed_nodes_key(infra_id)
         failed_nodes = self.kvstore.query_item(infra_key, dict())
         failed_nodes.update(dict((i['node_id'], i) for i in instace_datas))
@@ -443,6 +448,11 @@ class RedisUDS(UDS):
         """
         Store ``instance_data`` of failed nodes for later use.
         """
+        log.info('Archiving failed node instances for %r:\n%r',
+                 infra_id, [i['node_id'] for i in instance_datas])
+        if not instance_datas:
+            return
+
         infra_key = self.failed_nodes_key(infra_id)
         failed_nodes = self.kvstore.query_item(infra_key, dict())
         failed_nodes.update(dict((i['node_id'], i) for i in instace_datas))
