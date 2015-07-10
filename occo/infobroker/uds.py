@@ -317,7 +317,7 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
         """
         raise NotImplementedError()
 
-    def remove_node(self, infra_id, node_name, instance_id):
+    def remove_nodes(self, infra_id, node_name, *instance_ids):
         """
         Overridden in a derived class, removes a node instance from an
         infrastructure's dynamic description.
@@ -359,7 +359,7 @@ class DictUDS(UDS):
         node_list[node_id] = instance_data
         self.kvstore.set_item(infra_key, infra_state)
 
-    def remove_node(self, infra_id, node_name, instance_id):
+    def remove_nodes(self, infra_id, node_name, *instance_ids):
         """
         Removes a node instance from an infrastructure's dynamic description.
         """
@@ -409,7 +409,7 @@ class RedisUDS(UDS):
         node_list[node_id] = instance_data
         self.kvstore.set_item(infra_key, infra_state)
 
-    def remove_node(self, infra_id, node_name, instance_id):
+    def remove_nodes(self, infra_id, node_name, *instance_ids):
         """
         Removes a node instance from an infrastructure's dynamic description.
         """
