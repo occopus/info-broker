@@ -319,7 +319,7 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
         """
         raise NotImplementedError()
 
-    def register_started_node(self, infra_id, node_id, instance_data):
+    def register_started_node(self, infra_id, node_name, instance_data):
         """
         Overridden in a derived class, registers a started node instance in an
         infrastructure's dynamic description.
