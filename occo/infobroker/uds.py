@@ -62,6 +62,15 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
         """
         return 'infra:{0!s}:state'.format(infra_id)
 
+    def failed_nodes_key(self, infra_id):
+        """
+        Creates a backend key referencing a specific infrastructure's dynamic
+        state.
+
+        :param str infra_id: The internal key of the infrastructure.
+        """
+        return 'infra:{0!s}:failed_nodes'.format(infra_id)
+
     def auth_data_key(self, backend_id, user_id):
         """
         Creates a backend key referencing a user's stored authentication
@@ -324,6 +333,12 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
         """
         raise NotImplementedError()
 
+    def store_failed_nodes(self, infra_id, *instance_datas):
+        """
+        Store ``instance_data`` of failed nodes for later use.
+        """
+        raise NotImplementedError()
+
 @factory.register(UDS, 'dict')
 class DictUDS(UDS):
     def __init__(self, **backend_config):
@@ -362,6 +377,12 @@ class DictUDS(UDS):
     def remove_nodes(self, infra_id, node_name, *instance_ids):
         """
         Removes a node instance from an infrastructure's dynamic description.
+        """
+        raise NotImplementedError()
+
+    def store_failed_nodes(self, infra_id, *instance_datas):
+        """
+        Store ``instance_data`` of failed nodes for later use.
         """
         raise NotImplementedError()
 
@@ -412,5 +433,11 @@ class RedisUDS(UDS):
     def remove_nodes(self, infra_id, node_name, *instance_ids):
         """
         Removes a node instance from an infrastructure's dynamic description.
+        """
+        raise NotImplementedError()
+
+    def store_failed_nodes(self, infra_id, *instance_datas):
+        """
+        Store ``instance_data`` of failed nodes for later use.
         """
         raise NotImplementedError()
