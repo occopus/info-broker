@@ -384,7 +384,10 @@ class DictUDS(UDS):
         """
         Store ``instance_data`` of failed nodes for later use.
         """
-        raise NotImplementedError()
+        infra_key = self.failed_nodes_key(infra_id)
+        failed_nodes = self.kvstore.query_item(infra_key, dict())
+        failed_nodes.update(dict((i['node_id'], i) for i in instace_datas))
+        self.kvstore.set_item(infra_key, failed_nodes)
 
 @factory.register(UDS, 'redis')
 class RedisUDS(UDS):
@@ -440,4 +443,7 @@ class RedisUDS(UDS):
         """
         Store ``instance_data`` of failed nodes for later use.
         """
-        raise NotImplementedError()
+        infra_key = self.failed_nodes_key(infra_id)
+        failed_nodes = self.kvstore.query_item(infra_key, dict())
+        failed_nodes.update(dict((i['node_id'], i) for i in instace_datas))
+        self.kvstore.set_item(infra_key, failed_nodes)
