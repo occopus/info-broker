@@ -442,7 +442,21 @@ class RedisUDS(UDS):
         """
         Removes a node instance from an infrastructure's dynamic description.
         """
-        raise NotImplementedError()
+        log.info('Removing node instances from %r:\n%r', infra_id, node_ids)
+        if not node_ids:
+            return
+
+        infra_key = self.infra_state_key(infra_id)
+        infra_state = self.get_infrastructure_state(infra_id)
+        lookup = dict((node_id, node_name)
+                      for node_name, instlist in infra_state.iteritems()
+                      for node_id in instlist)
+        for i in node_ids:
+            try:
+                del infra_state[lookup[i]][i]
+            except KeyError:
+                raise KeyError('Instance does not exist', i)
+        self.kvstore.set_item(infra_key, infra_state)
 
     def store_failed_nodes(self, infra_id, *instance_datas):
         """
