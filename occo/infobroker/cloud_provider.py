@@ -15,7 +15,7 @@ __all__ = ['CloudInfoProvider']
 import occo.infobroker as ib
 import logging
 
-import occo.util.constants.status as status
+import occo.constants.status as status
 log = logging.getLogger('occo.infobroker.cloudprovider')
 
 @ib.provider
