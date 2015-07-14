@@ -15,6 +15,7 @@ __all__ = ['CloudInfoProvider']
 import occo.infobroker as ib
 import logging
 
+import occo.util.constants.status as status
 log = logging.getLogger('occo.infobroker.cloudprovider')
 
 @ib.provider
@@ -52,6 +53,17 @@ class CloudInfoProvider(ib.InfoProvider):
         sc_state = self.ib.get('node.service.state', instance_data)
         # TODO standardize states for both sources
         # TODO calculate overall state from the two sub-states
+        if ch_state == status.READY and sc_state == status.READY:
+            return status.READY
+        elif ch_state == status.FAIL or sc_state == status.FAIL:
+            return status.FAIL
+        elif ch_state == status.TMP_FAIL or sc_state == status.TMP_FAIL:
+            return status.TMP_FAIL
+        elif (ch_state == status.PENDING or sc_state == status.PENDING or
+              ch_state == status.UNKNOWN or sc_state == status.UNKNOWN):
+            return status.PENDING
+        else:
+            raise NotImplementedError()
         return "{0}:{1}".format(ch_state, sc_state)
 
     @ib.provides('infrastructure.started')
