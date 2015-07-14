@@ -51,8 +51,8 @@ class CloudInfoProvider(ib.InfoProvider):
         log.debug('Querying node state %r', instance_data['node_id'])
         ch_state = self.ib.get('node.resource.state', instance_data)
         sc_state = self.ib.get('node.service.state', instance_data)
-        # TODO standardize states for both sources
-        # TODO calculate overall state from the two sub-states
+        log.debug('Node state is {0}:{1}'.format(ch_state, sc_state))
+        
         if ch_state == status.READY and sc_state == status.READY:
             return status.READY
         elif ch_state == status.FAIL or sc_state == status.FAIL:
@@ -64,7 +64,6 @@ class CloudInfoProvider(ib.InfoProvider):
             return status.PENDING
         else:
             raise NotImplementedError()
-        return "{0}:{1}".format(ch_state, sc_state)
 
     @ib.provides('infrastructure.started')
     def get_infra_started(self, infra_id):
