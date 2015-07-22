@@ -44,6 +44,14 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
     def __init__(self):
         self.ib = ib.main_info_broker
 
+    def infra_key(self, infra_id):
+        """
+        Creates a backend key referencing a specific infrastructure's root key.
+
+        :param str infra_id: The internal key of the infrastructure.
+        """
+        return 'infra:{0!s}'.format(infra_id)
+
     def infra_description_key(self, infra_id):
         """
         Creates a backend key referencing a specific infrastructure's static
@@ -435,10 +443,11 @@ class RedisUDS(UDS):
         """
         Removes the static description of an infrastructure from the key-value
         store backend.
-
-        .. todo:: Implement.
         """
-        raise NotImplementedError()
+        pattern = '{0}*'.format(self.infra_key(infra_id))
+        keys = self.kvstore._enumerate(pattern)
+        for keytodelete in keys:
+            self.kvstore.delete_key(self.infra_key(keytodelete))
 
     def register_started_node(self, infra_id, node_name, instance_data):
         """
