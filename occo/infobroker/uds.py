@@ -116,7 +116,12 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
             :param str node_type: The identifier of the node's type (see
                 :ref:`nodedescription`\ /``type``.
         """
-        return self.kvstore.query_item(self.node_def_key(node_type))
+    
+       retval = self.kvstore.query_item(self.node_def_key(node_type))
+       if retval is None:
+           return list()
+       else:
+           return retval
 
     @ib.provides('node.definition')
     def nodedef(self, node_type, preselected_backend_ids=[],
