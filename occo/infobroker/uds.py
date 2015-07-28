@@ -320,12 +320,39 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
         """
         raise NotImplementedError()
 
+    def update_infrastructure(self, static_description):
+        """
+        Overridden in a derived class, stores the static description of an
+        infrastructure in the key-value store backend.
+        """
+        raise NotImplementedError()
+
     def remove_infrastructure(self, infra_id):
         """
         Overridden in a derived class, removes the static description of an
         infrastructure from the key-value store backend.
         """
         raise NotImplementedError()
+
+    def suspend_infrastructure(self, infra_id, **kwargs):
+        """
+        Register that the given infrastructure is suspended.
+
+        :param str infra_id: The identifier of the infrastructure.
+        """
+        sd = self.get_static_description(infra_id)
+        sd.suspended = True
+        self.update_infrastructure(static_description)
+
+    def resume_infrastructure(self, infra_id, **kwargs):
+        """
+        Register that the given infrastructure is resumed.
+
+        :param str infra_id: The identifier of the infrastructure.
+        """
+        sd = self.get_static_description(infra_id)
+        sd.suspended = False
+        self.update_infrastructure(static_description)
 
     def register_started_node(self, infra_id, node_name, instance_data):
         """
@@ -361,6 +388,16 @@ class DictUDS(UDS):
         self.kvstore.set_item(
             self.infra_description_key(static_description.infra_id),
             static_description)
+
+    def update_infrastructure(self, static_description):
+        """
+        Updates the static description of an infrastructure in the key-value
+        store backend.
+        """
+        self.kvstore.set_item(
+            self.infra_description_key(static_description.infra_id),
+            static_description)
+
     def remove_infrastructure(self, infra_id):
         """
         Removes the static description of an infrastructure from the key-value
@@ -433,6 +470,15 @@ class RedisUDS(UDS):
     def add_infrastructure(self, static_description):
         """
         Stores the static description of an infrastructure in the key-value
+        store backend.
+        """
+        self.kvstore.set_item(
+            self.infra_description_key(static_description.infra_id),
+            static_description)
+
+    def update_infrastructure(self, static_description):
+        """
+        Updates the static description of an infrastructure in the key-value
         store backend.
         """
         self.kvstore.set_item(
