@@ -32,13 +32,6 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
     It uses the :ref:`abstract factory <factory>` framework so backend-specific
     optimizations are possible.
 
-    :param info_broker: Access to the Information Broker service.
-    :type info_broker: :class:`occo.infobroker.provider.InfoProvider`
-    :param ** backend_config: Any configuration required by the backend
-        :class:`~occo.infobroker.kvstore.KeyValueStore`.
-
-    The ``UDS`` will instantiate its backend upon construction, passing through
-    parameters specified in ``backend_config``.
 
     """
     def __init__(self):
