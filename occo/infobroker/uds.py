@@ -32,17 +32,14 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
     It uses the :ref:`abstract factory <factory>` framework so backend-specific
     optimizations are possible.
 
-    :param info_broker: Access to the Information Broker service.
-    :type info_broker: :class:`occo.infobroker.provider.InfoProvider`
-    :param ** backend_config: Any configuration required by the backend
-        :class:`~occo.infobroker.kvstore.KeyValueStore`.
-
-    The ``UDS`` will instantiate its backend upon construction, passing through
-    parameters specified in ``backend_config``.
+    :param bool main_uds: If :data:`True`, the instance will register itself in
+        :mod:`occo.infobroker` as the globally available main UDS instance.
 
     """
-    def __init__(self):
+    def __init__(self, main_uds=True):
         self.ib = ib.main_info_broker
+        if main_uds:
+            ib.real_main_uds = self
 
     def infra_key(self, infra_id):
         """
@@ -320,12 +317,43 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
         """
         raise NotImplementedError()
 
+    def update_infrastructure(self, static_description):
+        """
+        Overridden in a derived class, stores the static description of an
+        infrastructure in the key-value store backend.
+        """
+        raise NotImplementedError()
+
     def remove_infrastructure(self, infra_id):
         """
         Overridden in a derived class, removes the static description of an
         infrastructure from the key-value store backend.
         """
         raise NotImplementedError()
+
+    def suspend_infrastructure(self, infra_id, reason, **kwargs):
+        """
+        Register that the given infrastructure is suspended.
+
+        :param str infra_id: The identifier of the infrastructure.
+        :param reason: The reason of the suspension (error message, exception
+            object, etc.)
+
+        .. todo:: The reason is currently unused.
+        """
+        sd = self.get_static_description(infra_id)
+        sd.suspended = True
+        self.update_infrastructure(sd)
+
+    def resume_infrastructure(self, infra_id, **kwargs):
+        """
+        Register that the given infrastructure is resumed.
+
+        :param str infra_id: The identifier of the infrastructure.
+        """
+        sd = self.get_static_description(infra_id)
+        sd.suspended = False
+        self.update_infrastructure(sd)
 
     def register_started_node(self, infra_id, node_name, instance_data):
         """
@@ -349,8 +377,8 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
 
 @factory.register(UDS, 'dict')
 class DictUDS(UDS):
-    def __init__(self, **backend_config):
-        super(DictUDS, self).__init__()
+    def __init__(self, main_uds=True, **backend_config):
+        super(DictUDS, self).__init__(main_uds)
         backend_config.setdefault('protocol', 'dict')
         self.kvstore = KeyValueStore.instantiate(**backend_config)
     def add_infrastructure(self, static_description):
@@ -361,6 +389,16 @@ class DictUDS(UDS):
         self.kvstore.set_item(
             self.infra_description_key(static_description.infra_id),
             static_description)
+
+    def update_infrastructure(self, static_description):
+        """
+        Updates the static description of an infrastructure in the key-value
+        store backend.
+        """
+        self.kvstore.set_item(
+            self.infra_description_key(static_description.infra_id),
+            static_description)
+
     def remove_infrastructure(self, infra_id):
         """
         Removes the static description of an infrastructure from the key-value
@@ -425,14 +463,23 @@ class RedisUDS(UDS):
         features if possible/suitable.
     """
 
-    def __init__(self, **backend_config):
-        super(RedisUDS, self).__init__()
+    def __init__(self, main_uds=True, **backend_config):
+        super(RedisUDS, self).__init__(main_uds)
         backend_config.setdefault('protocol', 'redis')
         self.kvstore = KeyValueStore.instantiate(**backend_config)
 
     def add_infrastructure(self, static_description):
         """
         Stores the static description of an infrastructure in the key-value
+        store backend.
+        """
+        self.kvstore.set_item(
+            self.infra_description_key(static_description.infra_id),
+            static_description)
+
+    def update_infrastructure(self, static_description):
+        """
+        Updates the static description of an infrastructure in the key-value
         store backend.
         """
         self.kvstore.set_item(

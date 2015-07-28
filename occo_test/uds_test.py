@@ -1,10 +1,12 @@
 import occo.infobroker.rediskvstore as rkvs
 import occo.infobroker.kvstore as kvs
+import occo.infobroker as ib
 from occo.infobroker.uds import UDS
 import redis
 import yaml
 import occo.util as util
 import unittest
+from occo.compiler import StaticDescription
 
 class DictUDSTest(unittest.TestCase):
     def setUp(self):
@@ -18,6 +20,9 @@ class DictUDSTest(unittest.TestCase):
         self.config = dict()
     def test_inst(self):
         self.uds = UDS.instantiate(self.protocol, **self.config)
+        self.assertIsNotNone(ib.real_main_uds)
+        self.assertEqual(ib.main_uds.register_started_node,
+                         self.uds.register_started_node)
     def test_infra(self):
         infraid = self.uuid
         state_infrakey = 'infra:{0!s}:state'.format(infraid)
@@ -39,6 +44,20 @@ class DictUDSTest(unittest.TestCase):
         self.assertEqual(uds.kvstore.query_item(failed_infrakey),
                          {'2': instances[1],
                           '3': instances[2]})
+    def test_suspend(self):
+        sd = StaticDescription(dict(name='',
+                                    nodes=[],
+                                    user_id=None))
+        infraid = sd.infra_id
+        uds = UDS.instantiate(self.protocol, **self.config)
+        uds.add_infrastructure(sd)
+
+        self.assertFalse(uds.get_static_description(infraid).suspended)
+        uds.suspend_infrastructure(
+            infraid, reason=Exception('something something daark siide'))
+        self.assertTrue(uds.get_static_description(infraid).suspended)
+        uds.resume_infrastructure(infraid)
+        self.assertFalse(uds.get_static_description(infraid).suspended)
 
 class RedisUDSTest(DictUDSTest):
     def init(self):
