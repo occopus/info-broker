@@ -53,7 +53,8 @@ class DictUDSTest(unittest.TestCase):
         uds.add_infrastructure(sd)
 
         self.assertFalse(uds.get_static_description(infraid).suspended)
-        uds.suspend_infrastructure(infraid)
+        uds.suspend_infrastructure(
+            infraid, reason=Exception('something something daark siide'))
         self.assertTrue(uds.get_static_description(infraid).suspended)
         uds.resume_infrastructure(infraid)
         self.assertFalse(uds.get_static_description(infraid).suspended)

@@ -331,11 +331,15 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
         """
         raise NotImplementedError()
 
-    def suspend_infrastructure(self, infra_id, **kwargs):
+    def suspend_infrastructure(self, infra_id, reason, **kwargs):
         """
         Register that the given infrastructure is suspended.
 
         :param str infra_id: The identifier of the infrastructure.
+        :param reason: The reason of the suspension (error message, exception
+            object, etc.)
+
+        .. todo:: The reason is currently unused.
         """
         sd = self.get_static_description(infra_id)
         sd.suspended = True
