@@ -6,6 +6,7 @@ import redis
 import yaml
 import occo.util as util
 import unittest
+from occo.compiler import StaticDescription
 
 class DictUDSTest(unittest.TestCase):
     def setUp(self):
@@ -43,6 +44,19 @@ class DictUDSTest(unittest.TestCase):
         self.assertEqual(uds.kvstore.query_item(failed_infrakey),
                          {'2': instances[1],
                           '3': instances[2]})
+    def test_suspend(self):
+        sd = StaticDescription(dict(name='',
+                                    nodes=[],
+                                    user_id=None))
+        infraid = sd.infra_id
+        uds = UDS.instantiate(self.protocol, **self.config)
+        uds.add_infrastructure(sd)
+
+        self.assertFalse(uds.get_static_description(infraid).suspended)
+        uds.suspend_infrastructure(infraid)
+        self.assertTrue(uds.get_static_description(infraid).suspended)
+        uds.resume_infrastructure(infraid)
+        self.assertFalse(uds.get_static_description(infraid).suspended)
 
 class RedisUDSTest(DictUDSTest):
     def init(self):
