@@ -84,3 +84,6 @@ def proxy_for(object_name):
 
 real_main_info_broker = None
 main_info_broker = proxy_for('real_main_info_broker')
+
+real_main_uds = None
+main_uds = proxy_for('real_main_uds')
