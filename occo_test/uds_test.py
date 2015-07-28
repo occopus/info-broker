@@ -1,5 +1,6 @@
 import occo.infobroker.rediskvstore as rkvs
 import occo.infobroker.kvstore as kvs
+import occo.infobroker as ib
 from occo.infobroker.uds import UDS
 import redis
 import yaml
@@ -18,6 +19,9 @@ class DictUDSTest(unittest.TestCase):
         self.config = dict()
     def test_inst(self):
         self.uds = UDS.instantiate(self.protocol, **self.config)
+        self.assertIsNotNone(ib.real_main_uds)
+        self.assertEqual(ib.main_uds.register_started_node,
+                         self.uds.register_started_node)
     def test_infra(self):
         infraid = self.uuid
         state_infrakey = 'infra:{0!s}:state'.format(infraid)

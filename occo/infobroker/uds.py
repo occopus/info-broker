@@ -32,17 +32,14 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
     It uses the :ref:`abstract factory <factory>` framework so backend-specific
     optimizations are possible.
 
-    :param info_broker: Access to the Information Broker service.
-    :type info_broker: :class:`occo.infobroker.provider.InfoProvider`
-    :param ** backend_config: Any configuration required by the backend
-        :class:`~occo.infobroker.kvstore.KeyValueStore`.
-
-    The ``UDS`` will instantiate its backend upon construction, passing through
-    parameters specified in ``backend_config``.
+    :param bool main_uds: If :data:`True`, the instance will register itself in
+        :mod:`occo.infobroker` as the globally available main UDS instance.
 
     """
-    def __init__(self):
+    def __init__(self, main_uds=True):
         self.ib = ib.main_info_broker
+        if main_uds:
+            ib.real_main_uds = self
 
     def infra_key(self, infra_id):
         """
@@ -376,8 +373,8 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
 
 @factory.register(UDS, 'dict')
 class DictUDS(UDS):
-    def __init__(self, **backend_config):
-        super(DictUDS, self).__init__()
+    def __init__(self, main_uds=True, **backend_config):
+        super(DictUDS, self).__init__(main_uds)
         backend_config.setdefault('protocol', 'dict')
         self.kvstore = KeyValueStore.instantiate(**backend_config)
     def add_infrastructure(self, static_description):
@@ -462,8 +459,8 @@ class RedisUDS(UDS):
         features if possible/suitable.
     """
 
-    def __init__(self, **backend_config):
-        super(RedisUDS, self).__init__()
+    def __init__(self, main_uds=True, **backend_config):
+        super(RedisUDS, self).__init__(main_uds)
         backend_config.setdefault('protocol', 'redis')
         self.kvstore = KeyValueStore.instantiate(**backend_config)
 
