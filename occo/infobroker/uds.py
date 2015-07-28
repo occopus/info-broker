@@ -339,7 +339,7 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
         """
         sd = self.get_static_description(infra_id)
         sd.suspended = True
-        self.update_infrastructure(static_description)
+        self.update_infrastructure(sd)
 
     def resume_infrastructure(self, infra_id, **kwargs):
         """
@@ -349,7 +349,7 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
         """
         sd = self.get_static_description(infra_id)
         sd.suspended = False
-        self.update_infrastructure(static_description)
+        self.update_infrastructure(sd)
 
     def register_started_node(self, infra_id, node_name, instance_data):
         """
