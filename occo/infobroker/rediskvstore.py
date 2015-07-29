@@ -15,6 +15,7 @@ Redis_ implementation of the OCCO
 __all__ = ['RedisKVStore']
 
 import occo.infobroker.kvstore as kvs
+import occo.exceptions as exc
 import occo.util.factory as factory
 import occo.util as util
 import yaml
@@ -95,6 +96,10 @@ class RedisKVStore(kvs.KeyValueStore):
         super(RedisKVStore, self).__init__(**kwargs)
         self.host, self.port, self.default_db = host, port, db
         self.altdbs = util.coalesce(altdbs, dict())
+        self.inverse_altdbs = dict((v, k) for k, v in self.altdbs.iteritems())
+        if len(self.altdbs) != len(self.inverse_altdbs):
+            raise exc.ConfigurationError('The specified altdbs is not a bijection',
+                                         self.altdbs)
         self.serialize = serialize
         self.deserialize = deserialize
 
