@@ -25,6 +25,7 @@ class RKVSTest(unittest.TestCase):
         self.assertEqual(k.key, self.uuid)
         self.store.set_item(altkey, 'korte')
         self.assertEqual(self.store.query_item(altkey), 'korte')
+        self.assertEqual(self.store._enumerate(altkey), [altkey])
 
     def test_non_altdb(self):
         self.store=kvs.KeyValueStore.instantiate(**self.data)

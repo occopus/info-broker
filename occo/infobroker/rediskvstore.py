@@ -108,6 +108,11 @@ class RedisKVStore(kvs.KeyValueStore):
         log.debug("Accessing key: %s", tkey)
         return tkey.get_connection()
 
+    def inverse_transform(self, backend, key):
+        db = backend.connection_pool.connection_kwargs['db']
+        return key if db == 0 \
+            else '{0}:{1}'.format(self.inverse_altdbs[db], key)
+
     def query_item(self, key, default=None):
         log.debug('Querying %r', key)
         backend, key = self.transform_key(key)
@@ -133,7 +138,8 @@ class RedisKVStore(kvs.KeyValueStore):
             return it.ifilter(pattern, backend.keys())
         else:
             backend, pattern = self.transform_key(pattern)
-            return backend.keys(pattern)
+            return [self.inverse_transform(backend, key)
+                    for key in backend.keys(pattern)]
 
     def delete_key(self, key):
         log.debug('Deleting %r', key)
