@@ -21,6 +21,7 @@ from occo.infobroker.brokering import NodeDefinitionSelector
 from occo.infobroker.kvstore import KeyValueStore
 from occo.util import flatten
 import logging, warnings
+from occo.exceptions.orchestration import NoMatchingNodeDefinition
 
 log = logging.getLogger('occo.infobroker.uds')
 
@@ -113,7 +114,8 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
             :param str node_type: The identifier of the node's type (see
                 :ref:`nodedescription`\ /``type``.
         """
-        return self.kvstore.query_item(self.node_def_key(node_type))
+        return self.kvstore.query_item(self.node_def_key(node_type)) \
+            or list()
 
     @ib.provides('node.definition')
     def nodedef(self, node_type, preselected_backend_ids=[],
@@ -306,6 +308,9 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
 
         all_definitions = self.get_filtered_definition_list(
             node_type, preselected_backend_ids)
+        if not all_definitions:
+            raise NoMatchingNodeDefinition(None, preselected_backend_ids, node_type)
+
         selector = NodeDefinitionSelector.instantiate(
             protocol=strategy, **kwargs)
         return selector.select_definition(all_definitions)
