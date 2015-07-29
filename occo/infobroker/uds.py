@@ -492,9 +492,9 @@ class RedisUDS(UDS):
         store backend.
         """
         pattern = '{0}*'.format(self.infra_key(infra_id))
-        keys = self.kvstore._enumerate(pattern)
+        keys = self.kvstore.enumerate(pattern, self.infra_key)
         for keytodelete in keys:
-            self.kvstore.delete_key(self.infra_key(keytodelete))
+            self.kvstore.delete_key(keytodelete)
 
     def register_started_node(self, infra_id, node_name, instance_data):
         """
