@@ -27,6 +27,13 @@ class RKVSTest(unittest.TestCase):
         self.assertEqual(self.store.query_item(altkey), 'korte')
         self.assertEqual(self.store._enumerate(altkey), [altkey])
 
+    def test_altdb_configerror(self):
+        from occo.exceptions import ConfigurationError
+        altdbs = self.data['altdbs']
+        altdbs['k1'] = altdbs['k2'] = 99
+        with self.assertRaises(ConfigurationError):
+            kvs.KeyValueStore.instantiate(**self.data)
+
     def test_non_altdb(self):
         self.store=kvs.KeyValueStore.instantiate(**self.data)
         altkey = 'noalt:{0}'.format(self.uuid)
