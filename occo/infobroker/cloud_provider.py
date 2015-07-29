@@ -57,6 +57,8 @@ class CloudInfoProvider(ib.InfoProvider):
             return status.READY
         elif ch_state == status.FAIL or sc_state == status.FAIL:
             return status.FAIL
+        elif ch_state == status.SHUTDOWN or sc_state == status.SHUTDOWN:
+            return status.SHUTDOWN
         elif ch_state == status.TMP_FAIL or sc_state == status.TMP_FAIL:
             return status.TMP_FAIL
         elif (ch_state == status.PENDING or sc_state == status.PENDING or
