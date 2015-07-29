@@ -7,6 +7,8 @@
 
 import occo.util.factory as factory
 import occo.infobroker as ib
+import logging
+log = logging.getLogger('occo.infobroker.nodedef_selection')
 
 class NodeDefinitionSelector(factory.MultiBackend):
     """
@@ -26,5 +28,7 @@ class RandomDefinitionSelector(NodeDefinitionSelector):
         Selects a single implementation from a node type's implementation set
         randomly.
         """
+        log.debug('Choosing one of %d definitions randomly',
+                  len(definition_list))
         import random
         return random.choice(definition_list)

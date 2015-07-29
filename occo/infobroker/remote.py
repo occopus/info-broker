@@ -122,10 +122,15 @@ class RemoteProviderSkeleton(object):
 
         """
         try:
+            log.debug('Received query for %s (%r, %r)',
+                      msg.key, msg.args, msg.kwargs)
             retval = self.backend_provider.get(msg.key, *msg.args, **msg.kwargs)
         except ib.KeyNotFoundError as e:
+            log.debug('Key not found; responding with 404')
             return comm.ExceptionResponse(404, e)
         except ib.ArgumentError as e:
+            log.debug('Argument error; responding with 400')
             return comm.ExceptionResponse(400, e)
         else:
+            log.debug('Succesful query.')
             return comm.Response(200, retval)
