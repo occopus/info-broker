@@ -218,7 +218,7 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
     def _filtered_infra(self, infra_id, name):
         def cut_id(s):
             parts = s.split(':')
-            return parts[0] if len(parts) == 2 else parts[1]
+            return parts[1]
 
         infra_ids = \
             [infra_id] if infra_id \
