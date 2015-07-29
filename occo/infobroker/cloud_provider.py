@@ -51,7 +51,7 @@ class CloudInfoProvider(ib.InfoProvider):
         log.debug('Querying node state %r', instance_data['node_id'])
         ch_state = self.ib.get('node.resource.state', instance_data)
         sc_state = self.ib.get('node.service.state', instance_data)
-        log.debug('Node state is {0}:{1}'.format(ch_state, sc_state))
+        log.debug('Node states are {0!r}:{1!r}'.format(ch_state, sc_state))
         
         if ch_state == status.READY and sc_state == status.READY:
             return status.READY

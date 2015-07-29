@@ -32,6 +32,9 @@ class RedisConnectionData(object):
     def __eq__(self, other):
         return (self.host, self.port, self.db) == \
             (other.host, other.port, other.db)
+    def __repr__(self):
+        return '{0.__class__.__name__!s}({0.host!r}, {0.port!r}, {0.db!r})' \
+            .format(self)
     def __str__(self):
         return '{0}:{1}/{2}'.format(self.host, self.port, self.db)
 
