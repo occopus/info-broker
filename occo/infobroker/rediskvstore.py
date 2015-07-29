@@ -15,6 +15,7 @@ Redis_ implementation of the OCCO
 __all__ = ['RedisKVStore']
 
 import occo.infobroker.kvstore as kvs
+import occo.exceptions as exc
 import occo.util.factory as factory
 import occo.util as util
 import yaml
@@ -95,6 +96,10 @@ class RedisKVStore(kvs.KeyValueStore):
         super(RedisKVStore, self).__init__(**kwargs)
         self.host, self.port, self.default_db = host, port, db
         self.altdbs = util.coalesce(altdbs, dict())
+        self.inverse_altdbs = dict((v, k) for k, v in self.altdbs.iteritems())
+        if len(self.altdbs) != len(self.inverse_altdbs):
+            raise exc.ConfigurationError('The specified altdbs is not a bijection',
+                                         self.altdbs)
         self.serialize = serialize
         self.deserialize = deserialize
 
@@ -102,6 +107,11 @@ class RedisKVStore(kvs.KeyValueStore):
         tkey = DBSelectorKey(key, self)
         log.debug("Accessing key: %s", tkey)
         return tkey.get_connection()
+
+    def inverse_transform(self, backend, key):
+        db = backend.connection_pool.connection_kwargs['db']
+        return key if db == 0 \
+            else '{0}:{1}'.format(self.inverse_altdbs[db], key)
 
     def query_item(self, key, default=None):
         log.debug('Querying %r', key)
@@ -128,7 +138,8 @@ class RedisKVStore(kvs.KeyValueStore):
             return it.ifilter(pattern, backend.keys())
         else:
             backend, pattern = self.transform_key(pattern)
-            return backend.keys(pattern)
+            return [self.inverse_transform(backend, key)
+                    for key in backend.keys(pattern)]
 
     def delete_key(self, key):
         log.debug('Deleting %r', key)
