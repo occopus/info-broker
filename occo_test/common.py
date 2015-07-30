@@ -18,10 +18,10 @@ log = logging.getLogger('occo.test')
 class TestProviderA(ib.InfoProvider):
     @ib.provides("global.brokertime.utc")
     def getutc(self, **kwargs):
-        return 'UTC %s'%datetime.datetime.utcnow().isoformat()
+        return 'UTC {0}'.format(datetime.datetime.utcnow().isoformat())
     @ib.provides("global.brokertime")
     def gettime(self, **kwargs):
-        return 'BT %s'%datetime.datetime.now(tz.tzlocal()).isoformat()
+        return 'BT {0}'.format(datetime.datetime.now(tz.tzlocal()).isoformat())
     @ib.logged(log.debug, two_records=True)
     @ib.provides("global.echo")
     def echo(self, msg, **kwargs):
@@ -36,7 +36,7 @@ class TestProviderB(ib.InfoProvider):
         return 'Hello World!'
     @ib.provides("global.echo")
     def anotherecho(self, **kwargs):
-        return 'HELLO %s'%kwargs['msg']
+        return 'HELLO {0}'.format(kwargs['msg'])
 
 @ib.provider
 class TestRouter(ib.InfoRouter):

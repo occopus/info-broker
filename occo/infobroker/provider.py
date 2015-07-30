@@ -159,8 +159,7 @@ def provider(cls):
         return cls() if isinstance(node, yaml.ScalarNode) \
             else cls(**loader.construct_mapping(node, deep=True))
 
-    # TODO: % <- format
-    yaml.add_constructor('!%s'%cls.__name__, yaml_constructor)
+    yaml.add_constructor('!{0}'.format(cls.__name__), yaml_constructor)
 
     cls.providers = dict((i[1].provided_key, i[1])
                          for i in getmembers(cls)
@@ -270,7 +269,7 @@ class InfoProvider(object):
         return self._can_immediately_get(key)
 
     def __str__(self):
-        return '%s %s'.format(self.__class__.__name__, self.keys)
+        return '{0} {1}'.format(self.__class__.__name__, self.keys)
 
     @property
     def iterkeys(self):
@@ -335,7 +334,7 @@ class InfoRouter(InfoProvider):
             else next((i for i in self.sub_providers if i.can_get(key)), None)
 
     def __str__(self):
-        return '%s %s + [%s]'.format(
+        return '{0} {1} + [{2}]'.format(
             self.__class__.__name__,
             self.keys,
             ', '.join(it.imap(str, self.sub_providers)))
