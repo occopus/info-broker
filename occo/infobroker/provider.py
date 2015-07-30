@@ -156,7 +156,7 @@ def provider(cls):
     """
 
     def yaml_constructor(loader, node):
-        return cls() if type(node) is yaml.ScalarNode \
+        return cls() if isinstance(node, yaml.ScalarNode) \
             else cls(**loader.construct_mapping(node, deep=True))
 
     # TODO: % <- format

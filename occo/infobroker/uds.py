@@ -197,6 +197,7 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
 
             See ``node.find`` for details.
         """
+        log.debug('Querying single node instance matching %r', node_spec)
         nodes = self.findinstances(**node_spec)
 
         if len(nodes) == 0:
@@ -205,6 +206,7 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
         elif len(nodes) > 1:
             warnings.warn('Multiple nodes found with the same name. '
                           'Using the first one.', UserWarning)
+
         return nodes[0]
 
     def _extract_nodes(self, infra_id, name):
@@ -220,11 +222,17 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
     def _filtered_infra(self, infra_id, name):
         def cut_id(s):
             parts = s.split(':')
-            return parts[0] if len(parts) == 2 else parts[1]
+            return parts[1]
 
-        infra_ids = \
-            [infra_id] if infra_id \
-            else self.kvstore.enumerate('infra:*:state', cut_id)
+        if infra_id:
+            infra_ids = [infra_id]
+        else:
+            warnings.warn('Filtering nodes without infra_id specified. '
+                          'As there are no DB indexes, this is an *extremely* '
+                          'inefficient operation (full DB sweep). Consider '
+                          'specifying an infra_id too.',
+                          UserWarning)
+            infra_ids = self.kvstore.enumerate('infra:*:state', cut_id)
 
         return flatten(self._extract_nodes(i, name) for i in infra_ids)
 
@@ -254,6 +262,7 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
             scanned.)
 
         """
+        log.debug('Looking up node all instances matching %r', node_spec)
         return self._find_instances(**node_spec)
 
     def _find_instances(self, **node_spec):
@@ -305,7 +314,9 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
         Selects a single implementation from a node type's implementation set
         using a specific decision strategy.
         """
-
+        log.debug('Selecting a node definition for %r (backend_filter: %r) '
+                  'using strategy %r',
+                  node_type, preselected_backend_ids, strategy)
         all_definitions = self.get_filtered_definition_list(
             node_type, preselected_backend_ids)
         if not all_definitions:
@@ -346,6 +357,8 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
 
         .. todo:: The reason is currently unused.
         """
+        log.debug('Suspending infrastructure %r (reason: %r)',
+                  infra_id, reason)
         sd = self.get_static_description(infra_id)
         sd.suspended = True
         self.update_infrastructure(sd)
@@ -356,6 +369,7 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
 
         :param str infra_id: The identifier of the infrastructure.
         """
+        log.debug('Resuming infrastructure %r', infra_id)
         sd = self.get_static_description(infra_id)
         sd.suspended = False
         self.update_infrastructure(sd)
@@ -386,11 +400,13 @@ class DictUDS(UDS):
         super(DictUDS, self).__init__(main_uds)
         backend_config.setdefault('protocol', 'dict')
         self.kvstore = KeyValueStore.instantiate(**backend_config)
+
     def add_infrastructure(self, static_description):
         """
         Stores the static description of an infrastructure in the key-value
         store backend.
         """
+        log.debug('Adding infrastructure: %r', static_description.infra_id)
         self.kvstore.set_item(
             self.infra_description_key(static_description.infra_id),
             static_description)
@@ -400,6 +416,7 @@ class DictUDS(UDS):
         Updates the static description of an infrastructure in the key-value
         store backend.
         """
+        log.debug('Updating infrastructure: %r', static_description.infra_id)
         self.kvstore.set_item(
             self.infra_description_key(static_description.infra_id),
             static_description)
@@ -419,6 +436,8 @@ class DictUDS(UDS):
         description.
         """
         node_id = instance_data['node_id']
+        log.debug('Registering new instance for %r/%r: %r',
+                  infra_id, node_name, node_id)
         infra_key = self.infra_state_key(infra_id)
         infra_state = self.get_infrastructure_state(infra_id)
         node_list = infra_state.setdefault(node_name, dict())
@@ -429,7 +448,7 @@ class DictUDS(UDS):
         """
         Removes a node instance from an infrastructure's dynamic description.
         """
-        log.info('Removing node instances from %r:\n%r', infra_id, node_ids)
+        log.info('Removing node instances from %r: %r', infra_id, node_ids)
         if not node_ids:
             return
 
@@ -463,9 +482,6 @@ class DictUDS(UDS):
 class RedisUDS(UDS):
     """
     Redis-based implementation of the UDS.
-
-    .. todo:: Implement (override):meth:`get_one_definition` exploiting Redis
-        features if possible/suitable.
     """
 
     def __init__(self, main_uds=True, **backend_config):
@@ -478,6 +494,7 @@ class RedisUDS(UDS):
         Stores the static description of an infrastructure in the key-value
         store backend.
         """
+        log.debug('Adding infrastructure: %r', static_description.infra_id)
         self.kvstore.set_item(
             self.infra_description_key(static_description.infra_id),
             static_description)
@@ -487,6 +504,7 @@ class RedisUDS(UDS):
         Updates the static description of an infrastructure in the key-value
         store backend.
         """
+        log.debug('Updating infrastructure: %r', static_description.infra_id)
         self.kvstore.set_item(
             self.infra_description_key(static_description.infra_id),
             static_description)
@@ -496,6 +514,7 @@ class RedisUDS(UDS):
         Removes the static description of an infrastructure from the key-value
         store backend.
         """
+        log.debug('Removing infrastructure: %r', infra_id)
         pattern = '{0}*'.format(self.infra_key(infra_id))
         keys = self.kvstore.enumerate(pattern)
         for keytodelete in keys:
@@ -507,6 +526,8 @@ class RedisUDS(UDS):
         description.
         """
         node_id = instance_data['node_id']
+        log.debug('Registering new instance for %r/%r: %r',
+                  infra_id, node_name, node_id)
         infra_key = self.infra_state_key(infra_id)
         infra_state = self.get_infrastructure_state(infra_id)
         node_list = infra_state.setdefault(node_name, dict())
@@ -517,7 +538,7 @@ class RedisUDS(UDS):
         """
         Removes a node instance from an infrastructure's dynamic description.
         """
-        log.info('Removing node instances from %r:\n%r', infra_id, node_ids)
+        log.info('Removing node instances from %r: %r', infra_id, node_ids)
         if not node_ids:
             return
 
