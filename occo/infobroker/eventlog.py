@@ -66,6 +66,14 @@ class EventLog(factory.MultiBackend):
         """ Create a timestamp for an event object. """
         return time.time()
 
+    def infrastructure_created(self, infra_id):
+        """ Store event: Infrastructure created """
+        self.raw_log_event(
+            name='infrastart',
+            infra_id=infra_id
+        )
+
+
 @factory.register(EventLog, 'logging')
 class BasicEventLog(EventLog):
     """
