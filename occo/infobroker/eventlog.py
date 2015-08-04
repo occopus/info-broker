@@ -51,6 +51,12 @@ class EventLog(factory.MultiBackend):
         event['timestamp'] = self._create_timestamp()
         return self._raw_log_event(event)
 
+    def raw_log_event_kw(self, **kwargs):
+        """
+        Timestamp and store an event object created from keyword arguments.
+        """
+        return self.raw_log_event(kwargs)
+
     def _create_timestamp(self):
         """ Create a timestamp for an event object. """
         return time.time()
