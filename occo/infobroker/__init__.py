@@ -87,3 +87,6 @@ main_info_broker = proxy_for('real_main_info_broker')
 
 real_main_uds = None
 main_uds = proxy_for('real_main_uds')
+
+real_main_eventlog = None
+main_eventlog = proxy_for('real_main_eventlog')
