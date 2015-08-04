@@ -2,6 +2,7 @@ import occo.infobroker.eventlog as el
 import occo.infobroker as ib
 import occo.util as util
 import StringIO as sio
+import yaml
 import unittest
 import logging
 
@@ -25,12 +26,5 @@ class EventLogTest(unittest.TestCase):
         result = self.stream.getvalue()
 
         print result
-        self.assertEqual(
-            dict((k, eval(v))
-                 for k, v in (
-                         i.split('=')
-                         for i in result.split('; ')
-                 )
-            ),
-            event
-        )
+        self.assertIn('timestamp', event)
+        self.assertEqual(yaml.load(result), event)

@@ -73,7 +73,8 @@ class BasicEventLog(EventLog):
 
     def __init__(self, logger_name='occo.eventlog', loglevel='info'):
         self.log_method = getattr(logging.getLogger(logger_name), loglevel)
+        import yaml # Pre-load
 
     def _raw_log_event(self, event):
-        self.log_method('; '.join('{0!s}={1!r}'.format(k, v)
-                                  for k, v in event.iteritems()))
+        import yaml
+        self.log_method(yaml.dump(event))
