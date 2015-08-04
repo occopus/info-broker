@@ -53,7 +53,7 @@ class EventLog(factory.MultiBackend):
                                 'arguments must be specified.')
 
         eventobj = event or kwargs
-        eventobj['timestamp'] = self._create_timestamp()
+        eventobj.setdefault('timestamp', self._create_timestamp())
         return self._raw_log_event(eventobj)
 
     def _create_timestamp(self):
