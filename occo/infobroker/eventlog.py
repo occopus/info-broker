@@ -20,6 +20,7 @@ __all__ = ['EventLog', 'BasicEventLog']
 
 import occo.util.factory as factory
 import occo.infobroker as ib
+import time
 import logging
 
 log = logging.getLogger('occo.infobroker.eventlog')
@@ -32,7 +33,7 @@ class EventLog(factory.MultiBackend):
         self.ib = ib.main_info_broker
         ib.real_main_eventlog = self
 
-    def raw_log_event(self, event):
+    def _raw_log_event(self, event):
         """
         Overridden in a derived class, this method is responsible for actually
         storing the event object.
@@ -40,6 +41,19 @@ class EventLog(factory.MultiBackend):
         :param dict event: The event to be stored.
         """
         raise NotImplementedError()
+
+    def raw_log_event(self, event):
+        """
+        Timestamp and store an event object.
+
+        :param dict event: The event to be stored.
+        """
+        event['timestamp'] = self._create_timestamp()
+        return self._raw_log_event(event)
+
+    def _create_timestamp(self):
+        """ Create a timestamp for an event object. """
+        return time.time()
 
 @factory.register(EventLog, 'logging')
 class BasicEventLog(EventLog):
@@ -54,6 +68,6 @@ class BasicEventLog(EventLog):
     def __init__(self, logger_name='occo.eventlog', loglevel='info'):
         self.log_method = getattr(logging.getLogger(logger_name), loglevel)
 
-    def raw_log_event(self, event):
+    def _raw_log_event(self, event):
         self.log_method('; '.join('{0!s}={1!r}'.format(k, v)
                                   for k, v in event.iteritems()))
