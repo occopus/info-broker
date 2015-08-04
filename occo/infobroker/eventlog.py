@@ -42,20 +42,19 @@ class EventLog(factory.MultiBackend):
         """
         raise NotImplementedError()
 
-    def raw_log_event(self, event):
+    def raw_log_event(self, event=None, **kwargs):
         """
         Timestamp and store an event object.
 
         :param dict event: The event to be stored.
         """
-        event['timestamp'] = self._create_timestamp()
-        return self._raw_log_event(event)
+        if (not event and not kwargs) or (event and kwargs):
+            raise ArugmentError('Either `event` XOR a set of keyword '
+                                'arguments must be specified.')
 
-    def raw_log_event_kw(self, **kwargs):
-        """
-        Timestamp and store an event object created from keyword arguments.
-        """
-        return self.raw_log_event(kwargs)
+        eventobj = event or kwargs
+        eventobj['timestamp'] = self._create_timestamp()
+        return self._raw_log_event(eventobj)
 
     def _create_timestamp(self):
         """ Create a timestamp for an event object. """
