@@ -42,7 +42,7 @@ class EventLog(factory.MultiBackend):
         """
         raise NotImplementedError()
 
-    def raw_log_event(self, event=None, **kwargs):
+    def log_event(self, event=None, **kwargs):
         """
         Timestamp and store an event object. Either ``event`` XOR a set of
         keyword arguments must be specified. If ``timestamp`` is not given in
@@ -68,7 +68,7 @@ class EventLog(factory.MultiBackend):
 
     def infrastructure_created(self, infra_id):
         """ Store event: Infrastructure created """
-        self.raw_log_event(
+        self.log_event(
             name='infrastart',
             infra_id=infra_id
         )

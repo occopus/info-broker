@@ -22,7 +22,7 @@ class EventLogTest(unittest.TestCase):
     def test_el(self):
         elog = el.EventLog.instantiate('logging', 'occo.test.eventlog')
         event = dict(a=1, b=2, c='alma')
-        elog.raw_log_event(event)
+        elog.log_event(event)
         result = self.stream.getvalue()
 
         print result
@@ -31,7 +31,7 @@ class EventLogTest(unittest.TestCase):
 
     def test_eli_kw(self):
         elog = el.EventLog.instantiate('logging', 'occo.test.eventlog')
-        elog.raw_log_event(a=1, b=2, timestamp=0)
+        elog.log_event(a=1, b=2, timestamp=0)
         result = self.stream.getvalue()
 
         print result
