@@ -44,9 +44,15 @@ class EventLog(factory.MultiBackend):
 
     def raw_log_event(self, event=None, **kwargs):
         """
-        Timestamp and store an event object.
+        Timestamp and store an event object. Either ``event`` XOR a set of
+        keyword arguments must be specified. If ``timestamp`` is not given in
+        the event explicitly, the current time will be used to generate one.
+
+        If ``event`` is specified, the dictionary will be amended with a
+        ``timestamp`` field.
 
         :param dict event: The event to be stored.
+        :param ** kwargs: The fields of the event to be stored.
         """
         if (not event and not kwargs) or (event and kwargs):
             raise ArugmentError('Either `event` XOR a set of keyword '
