@@ -73,6 +73,36 @@ class EventLog(factory.MultiBackend):
             infra_id=infra_id
         )
 
+    def node_created(self, instance_data):
+        """ Store event: Node created """
+        self.log_event(
+            name='nodestart',
+            backend_id=instance_data['backend_id'],
+            node_id=instance_data['node_id'],
+        )
+
+    def node_failed(self, instance_data):
+        """ Store event: Node failed """
+        self.log_event(
+            name='nodefailed',
+            backend_id=instance_data['backend_id'],
+            node_id=instance_data['node_id'],
+        )
+
+    def node_deleted(self, instance_data):
+        """ Store event: Node deleted """
+        self.log_event(
+            name='nodedrop',
+            backend_id=instance_data['backend_id'],
+            node_id=instance_data['node_id'],
+        )
+
+    def infrastructure_deleted(self, infra_id):
+        """ Store event: Infrastructure deleted """
+        self.log_event(
+            name='infradrop',
+            infra_id=infra_id
+        )
 
 @factory.register(EventLog, 'logging')
 class BasicEventLog(EventLog):

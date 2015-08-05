@@ -44,12 +44,19 @@ class EventLogTest(unittest.TestCase):
     def test_convenience_functions(self):
         elog = el.EventLog.instantiate('logging', 'occo.test.eventlog')
         elog.infrastructure_created('infraid1')
+        elog.node_created(dict(node_id='node1', backend_id='back1'))
+        elog.node_failed(dict(node_id='node1', backend_id='back1'))
+        elog.node_deleted(dict(node_id='node1', backend_id='back1'))
+        elog.infrastructure_deleted('infraid1')
         result = self.stream.getvalue()
 
+        def lines(s):
+            import re
+            return (x.group(0) for x in re.finditer(r"^.*$", s, re.MULTILINE))
+
         print result
-        res = yaml.load(result)
-        self.assertIn('timestamp', res)
-        self.assertIn('name', res)
-        self.assertIn('infra_id', res)
-        self.assertEquals(res['name'], 'infrastart')
-        self.assertEquals(res['infra_id'], 'infraid1')
+        for i in lines(result):
+            if i:
+                res = yaml.load(i)
+                self.assertIn('timestamp', res)
+                self.assertIn('name', res)
