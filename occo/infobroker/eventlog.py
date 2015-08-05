@@ -115,6 +115,7 @@ class BasicEventLog(EventLog):
     """
 
     def __init__(self, logger_name='occo.eventlog', loglevel='info'):
+        super(BasicEventLog, self).__init__()
         self.log_method = getattr(logging.getLogger(logger_name), loglevel)
         import yaml # Pre-load
 
