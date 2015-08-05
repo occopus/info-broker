@@ -122,3 +122,6 @@ class BasicEventLog(EventLog):
     def _raw_log_event(self, event):
         import yaml
         self.log_method(yaml.dump(event))
+
+# Register default singleton instance
+BasicEventLog()
