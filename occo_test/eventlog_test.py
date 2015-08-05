@@ -1,0 +1,62 @@
+import occo.infobroker.eventlog as el
+import occo.infobroker as ib
+import occo.util as util
+import StringIO as sio
+import yaml
+import unittest
+import logging
+
+class EventLogTest(unittest.TestCase):
+    def setUp(self):
+        self.stream = sio.StringIO()
+        handler = logging.StreamHandler(self.stream)
+        log = logging.getLogger('occo.test.eventlog')
+        log.setLevel(logging.INFO)
+        del log.handlers[:]
+        log.addHandler(handler)
+
+    def test_inst(self):
+        elog = el.EventLog.instantiate('logging')
+        self.assertIsInstance(elog, el.BasicEventLog)
+
+    def test_el(self):
+        elog = el.EventLog.instantiate('logging', 'occo.test.eventlog')
+        event = dict(a=1, b=2, c='alma')
+        elog.log_event(event)
+        result = self.stream.getvalue()
+
+        print result
+        self.assertIn('timestamp', event)
+        self.assertEqual(yaml.load(result), event)
+
+    def test_eli_kw(self):
+        elog = el.EventLog.instantiate('logging', 'occo.test.eventlog')
+        elog.log_event(a=1, b=2, timestamp=0)
+        result = self.stream.getvalue()
+
+        print result
+        res = yaml.load(result)
+        self.assertIn('timestamp', res)
+        self.assertIn('a', res)
+        self.assertIn('b', res)
+        self.assertEquals(res['timestamp'], 0)
+
+    def test_convenience_functions(self):
+        elog = el.EventLog.instantiate('logging', 'occo.test.eventlog')
+        elog.infrastructure_created('infraid1')
+        elog.node_created(dict(node_id='node1', backend_id='back1'))
+        elog.node_failed(dict(node_id='node1', backend_id='back1'))
+        elog.node_deleted(dict(node_id='node1', backend_id='back1'))
+        elog.infrastructure_deleted('infraid1')
+        result = self.stream.getvalue()
+
+        def lines(s):
+            import re
+            return (x.group(0) for x in re.finditer(r"^.*$", s, re.MULTILINE))
+
+        print result
+        for i in lines(result):
+            if i:
+                res = yaml.load(i)
+                self.assertIn('timestamp', res)
+                self.assertIn('name', res)
