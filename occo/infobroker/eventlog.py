@@ -33,16 +33,17 @@ class EventLog(factory.MultiBackend):
         self.ib = ib.main_info_broker
         ib.real_main_eventlog = self
 
-    def _raw_log_event(self, event):
+    def _raw_log_event(self, infra_id, event):
         """
         Overridden in a derived class, this method is responsible for actually
         storing the event object.
 
+        :param str infra_id: The infrastructure this event belongs to.
         :param dict event: The event to be stored.
         """
         raise NotImplementedError()
 
-    def log_event(self, event=None, **kwargs):
+    def log_event(self, infra_id, event=None, **kwargs):
         """
         Timestamp and store an event object. Either ``event`` XOR a set of
         keyword arguments must be specified. If ``timestamp`` is not given in
@@ -60,7 +61,7 @@ class EventLog(factory.MultiBackend):
 
         eventobj = event or kwargs
         eventobj.setdefault('timestamp', self._create_timestamp())
-        return self._raw_log_event(eventobj)
+        return self._raw_log_event(infra_id, eventobj)
 
     def _create_timestamp(self):
         """ Create a timestamp for an event object. """
@@ -77,6 +78,7 @@ class EventLog(factory.MultiBackend):
         """ Store event: Node created """
         self.log_event(
             name='nodestart',
+            infra_id=instance_data['infra_id'],
             backend_id=instance_data['backend_id'],
             node_id=instance_data['node_id'],
         )
@@ -85,6 +87,7 @@ class EventLog(factory.MultiBackend):
         """ Store event: Node failed """
         self.log_event(
             name='nodefailed',
+            infra_id=instance_data['infra_id'],
             backend_id=instance_data['backend_id'],
             node_id=instance_data['node_id'],
         )
@@ -93,6 +96,7 @@ class EventLog(factory.MultiBackend):
         """ Store event: Node deleted """
         self.log_event(
             name='nodedrop',
+            infra_id=instance_data['infra_id'],
             backend_id=instance_data['backend_id'],
             node_id=instance_data['node_id'],
         )
@@ -119,9 +123,9 @@ class BasicEventLog(EventLog):
         self.log_method = getattr(logging.getLogger(logger_name), loglevel)
         import yaml # Pre-load
 
-    def _raw_log_event(self, event):
+    def _raw_log_event(self, infra_id, event):
         import yaml
-        self.log_method(yaml.dump(event))
+        self.log_method('%s ;; %s', infra_id, yaml.dump(event))
 
 # Register default singleton instance
 BasicEventLog()
