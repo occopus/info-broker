@@ -26,8 +26,10 @@ class EventLogTest(unittest.TestCase):
         result = self.stream.getvalue()
 
         print result
-        res_infra_id, _, timestamp, data = el.BasicEventLog._parse_event_string(result)
+        res_infra_id, event_name, timestamp, data = \
+            el.BasicEventLog._parse_event_string(result)
         self.assertEqual(infra_id, res_infra_id)
+        self.assertEqual(event_name, 'testevent')
         self.assertEqual(data, event)
         self.assertNotEqual(timestamp, 0)
 
@@ -38,8 +40,10 @@ class EventLogTest(unittest.TestCase):
         result = self.stream.getvalue()
 
         print result
-        res_infra_id, _, timestamp, data = el.BasicEventLog._parse_event_string(result)
+        res_infra_id, event_name, timestamp, data = \
+            el.BasicEventLog._parse_event_string(result)
         self.assertEqual(infra_id, res_infra_id)
+        self.assertEqual(event_name, 'testevent')
         self.assertIn('a', data)
         self.assertIn('b', data)
         self.assertEquals(timestamp, 0)
@@ -61,7 +65,8 @@ class EventLogTest(unittest.TestCase):
         print result
         for i in lines(result):
             if i:
-                res_infra_id, _, timestamp, data = el.BasicEventLog._parse_event_string(i)
+                res_infra_id, event_name, timestamp, data = \
+                    el.BasicEventLog._parse_event_string(i)
                 self.assertEqual(infra_id, res_infra_id)
                 self.assertNotEqual(timestamp, 0)
-                #self.assertIn('name', data)
+                self.assertTrue(event_name)
