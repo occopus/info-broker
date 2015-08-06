@@ -33,7 +33,7 @@ class EventLog(factory.MultiBackend):
         self.ib = ib.main_info_broker
         ib.real_main_eventlog = self
 
-    def _raw_log_event(self, infra_id, event_name, event_data):
+    def _raw_log_event(self, infra_id, event_name, timestamp, event_data):
         """
         Overridden in a derived class, this method is responsible for actually
         storing the event object.
@@ -43,7 +43,8 @@ class EventLog(factory.MultiBackend):
         """
         raise NotImplementedError()
 
-    def log_event(self, infra_id, event_name, event_data=None, **kwargs):
+    def log_event(self, infra_id, event_name, timestamp=None,
+                  event_data=None, **kwargs):
         """
         Timestamp and store an event object. Either ``event`` XOR a set of
         keyword arguments must be specified. If ``timestamp`` is not given in
@@ -56,8 +57,8 @@ class EventLog(factory.MultiBackend):
         :param ** kwargs: The fields of the event to be stored.
         """
         eventobj = event_data or kwargs or dict()
-        eventobj.setdefault('timestamp', self._create_timestamp())
-        return self._raw_log_event(infra_id, event_name, eventobj)
+        timestamp = timestamp or self._create_timestamp()
+        return self._raw_log_event(infra_id, event_name, timestamp, eventobj)
 
     def _create_timestamp(self):
         """ Create a timestamp for an event object. """
@@ -113,9 +114,10 @@ class BasicEventLog(EventLog):
         self.log_method = getattr(logging.getLogger(logger_name), loglevel)
         import yaml # Pre-load
 
-    def _raw_log_event(self, infra_id, event_name, event_data):
+    def _raw_log_event(self, infra_id, event_name, timestamp, event_data):
         import yaml
-        self.log_method('%s ;; %s ;; %s', infra_id, event_name, yaml.dump(event_data))
+        self.log_method('%s ;; %s ;; %r ;; %s',
+                        infra_id, event_name, timestamp, yaml.dump(event_data))
 
 # Register default singleton instance
 BasicEventLog()
