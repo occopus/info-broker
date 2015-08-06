@@ -26,9 +26,10 @@ class EventLogTest(unittest.TestCase):
         result = self.stream.getvalue()
 
         print result
-        res_infra_id, _, _, data = el.BasicEventLog._parse_event_string(result)
+        res_infra_id, _, timestamp, data = el.BasicEventLog._parse_event_string(result)
         self.assertEqual(infra_id, res_infra_id)
         self.assertEqual(data, event)
+        self.assertNotEqual(timestamp, 0)
 
     def test_eli_kw(self):
         infra_id = 'qwertyui'
@@ -37,12 +38,11 @@ class EventLogTest(unittest.TestCase):
         result = self.stream.getvalue()
 
         print result
-        res_infra_id, _, _, data = el.BasicEventLog._parse_event_string(result)
+        res_infra_id, _, timestamp, data = el.BasicEventLog._parse_event_string(result)
         self.assertEqual(infra_id, res_infra_id)
-        #self.assertIn('timestamp', data)
         self.assertIn('a', data)
         self.assertIn('b', data)
-        #self.assertEquals(data['timestamp'], 0)
+        self.assertEquals(timestamp, 0)
 
     def test_convenience_functions(self):
         infra_id = 'asdfghjk'
@@ -61,7 +61,7 @@ class EventLogTest(unittest.TestCase):
         print result
         for i in lines(result):
             if i:
-                res_infra_id, _, _, data = el.BasicEventLog._parse_event_string(i)
+                res_infra_id, _, timestamp, data = el.BasicEventLog._parse_event_string(i)
                 self.assertEqual(infra_id, res_infra_id)
-                #self.assertIn('timestamp', data)
+                self.assertNotEqual(timestamp, 0)
                 #self.assertIn('name', data)
