@@ -124,5 +124,15 @@ class BasicEventLog(EventLog):
         self.log_method('%s ;; %s ;; %r ;; %s',
                         infra_id, event_name, timestamp, yaml.dump(event_data))
 
+    @staticmethod
+    def _parse_event_string(string):
+        """
+        Utility method for testing: reconstructs event parameters from its text
+        representations.
+        """
+        import yaml
+        parts = string.split(' ;; ')
+        return parts[0], parts[1], parts[2], yaml.load(parts[3])
+
 # Register default singleton instance
 BasicEventLog()
