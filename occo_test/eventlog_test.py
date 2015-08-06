@@ -2,7 +2,6 @@ import occo.infobroker.eventlog as el
 import occo.infobroker as ib
 import occo.util as util
 import StringIO as sio
-import yaml
 import unittest
 import logging
 
@@ -20,34 +19,43 @@ class EventLogTest(unittest.TestCase):
         self.assertIsInstance(elog, el.BasicEventLog)
 
     def test_el(self):
+        infra_id = '1234567890'
         elog = el.EventLog.instantiate('logging', 'occo.test.eventlog')
         event = dict(a=1, b=2, c='alma')
-        elog.log_event(event)
+        elog.log_event(infra_id, 'testevent', event_data=event)
         result = self.stream.getvalue()
 
         print result
-        self.assertIn('timestamp', event)
-        self.assertEqual(yaml.load(result), event)
+        res_infra_id, event_name, timestamp, data = \
+            el.BasicEventLog._parse_event_string(result)
+        self.assertEqual(infra_id, res_infra_id)
+        self.assertEqual(event_name, 'testevent')
+        self.assertEqual(data, event)
+        self.assertNotEqual(timestamp, 0)
 
     def test_eli_kw(self):
+        infra_id = 'qwertyui'
         elog = el.EventLog.instantiate('logging', 'occo.test.eventlog')
-        elog.log_event(a=1, b=2, timestamp=0)
+        elog.log_event(infra_id, 'testevent', a=1, b=2, timestamp=0)
         result = self.stream.getvalue()
 
         print result
-        res = yaml.load(result)
-        self.assertIn('timestamp', res)
-        self.assertIn('a', res)
-        self.assertIn('b', res)
-        self.assertEquals(res['timestamp'], 0)
+        res_infra_id, event_name, timestamp, data = \
+            el.BasicEventLog._parse_event_string(result)
+        self.assertEqual(infra_id, res_infra_id)
+        self.assertEqual(event_name, 'testevent')
+        self.assertIn('a', data)
+        self.assertIn('b', data)
+        self.assertEquals(timestamp, 0)
 
     def test_convenience_functions(self):
+        infra_id = 'asdfghjk'
         elog = el.EventLog.instantiate('logging', 'occo.test.eventlog')
-        elog.infrastructure_created('infraid1')
-        elog.node_created(dict(node_id='node1', backend_id='back1'))
-        elog.node_failed(dict(node_id='node1', backend_id='back1'))
-        elog.node_deleted(dict(node_id='node1', backend_id='back1'))
-        elog.infrastructure_deleted('infraid1')
+        elog.infrastructure_created(infra_id)
+        elog.node_created(dict(infra_id=infra_id, node_id='node1', backend_id='back1'))
+        elog.node_failed(dict(infra_id=infra_id, node_id='node1', backend_id='back1'))
+        elog.node_deleted(dict(infra_id=infra_id, node_id='node1', backend_id='back1'))
+        elog.infrastructure_deleted(infra_id)
         result = self.stream.getvalue()
 
         def lines(s):
@@ -57,6 +65,8 @@ class EventLogTest(unittest.TestCase):
         print result
         for i in lines(result):
             if i:
-                res = yaml.load(i)
-                self.assertIn('timestamp', res)
-                self.assertIn('name', res)
+                res_infra_id, event_name, timestamp, data = \
+                    el.BasicEventLog._parse_event_string(i)
+                self.assertEqual(infra_id, res_infra_id)
+                self.assertNotEqual(timestamp, 0)
+                self.assertTrue(event_name)
