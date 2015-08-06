@@ -56,8 +56,8 @@ class EventLog(factory.MultiBackend):
         :param ** kwargs: The fields of the event to be stored.
         """
         if (not event_data and not kwargs) or (event_data and kwargs):
-            raise ArugmentError('Either `event_data` XOR a set of keyword '
-                                'arguments must be specified.')
+            raise RuntimeError('Either `event_data` XOR a set of keyword '
+                               'arguments must be specified.')
 
         eventobj = event_data or kwargs
         eventobj.setdefault('timestamp', self._create_timestamp())
