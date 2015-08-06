@@ -55,11 +55,7 @@ class EventLog(factory.MultiBackend):
         :param dict event_data: The event to be stored.
         :param ** kwargs: The fields of the event to be stored.
         """
-        if (not event_data and not kwargs) or (event_data and kwargs):
-            raise RuntimeError('Either `event_data` XOR a set of keyword '
-                               'arguments must be specified.')
-
-        eventobj = event_data or kwargs
+        eventobj = event_data or kwargs or dict()
         eventobj.setdefault('timestamp', self._create_timestamp())
         return self._raw_log_event(infra_id, event_name, eventobj)
 
