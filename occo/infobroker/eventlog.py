@@ -133,7 +133,7 @@ class BasicEventLog(EventLog):
         """
         import yaml
         parts = string.split(' ;; ')
-        return parts[0], parts[1], parts[2], yaml.load(parts[3])
+        return parts[0], parts[1], float(parts[2]), yaml.load(parts[3])
 
 # Register default singleton instance
 BasicEventLog()
