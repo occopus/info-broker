@@ -10,23 +10,23 @@ cloud-related queries.
 
 """
 
-__all__ = ['CloudInfoProvider']
+__all__ = ['DynamicStateProvider']
 
 import occo.infobroker as ib
 import logging
 
 import occo.constants.status as status
-log = logging.getLogger('occo.infobroker.cloudprovider')
+log = logging.getLogger('occo.infobroker.dsprovider')
 
 @ib.provider
-class CloudInfoProvider(ib.InfoProvider):
+class DynamicStateProvider(ib.InfoProvider):
     """
     :class:`~occo.infobroker.provider.InfoProvider` implementation. This
     class contains query implementations specific to the dynamic state of
     an infrastructure.
 
-    .. todo:: Either the naming of this class is wrong, or some of the
-        handlers need to be moved elsewhere.
+    .. todo:: There will be a separate CloudHandlerProvider (OCD-249). Use that
+        through ``self.ib.get`` instead of directly referencing the CH instance.
     """
     def __init__(self, service_composer, cloud_handler):
         self.ib = ib.main_info_broker
@@ -116,6 +116,8 @@ class CloudInfoProvider(ib.InfoProvider):
 
             :returns: Node attribute as defined by the actual service composer.
 
+        .. todo:: This should be moved to a ServiceComposerHandler (a la
+            CloudHandlerProvider).
         """
         log.debug('Querying node attribute %r[%r]', node_id, attribute)
         return self.sc.get_node_attribute(node_id, attribute)
