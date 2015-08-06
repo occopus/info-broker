@@ -62,7 +62,8 @@ class EventLog(factory.MultiBackend):
                 '`event_data` and `kwargs` cannot be specified together.')
 
         eventobj = event_data or kwargs or dict()
-        timestamp = timestamp or self._create_timestamp()
+        if timestamp is None:
+            timestamp = self._create_timestamp()
         return self._raw_log_event(infra_id, event_name, timestamp, eventobj)
 
     def _create_timestamp(self):
