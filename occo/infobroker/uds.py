@@ -15,6 +15,7 @@ querying and manipulation primitives based on a key-value store. (Cf.
 
 __all__ = ['UDS']
 
+import occo.exceptions as exc
 import occo.util.factory as factory
 import occo.infobroker as ib
 from occo.infobroker.brokering import NodeDefinitionSelector
@@ -24,6 +25,26 @@ import logging, warnings
 from occo.exceptions.orchestration import NoMatchingNodeDefinition
 
 log = logging.getLogger('occo.infobroker.uds')
+
+def ensure_exists(fun):
+    from functools import wraps
+    import sys
+
+    def raise_error(*args):
+        raise exc.KeyNotFoundError('Unknown infrastructure', *args), \
+            None, sys.exc_info()[2]
+
+    @wraps(fun)
+    def chk_result(*args, **kwargs):
+        try:
+            result = fun(*args, **kwargs)
+            if result is None:
+                raise_error(*args)
+        except KeyError:
+            raise_error(*args)
+
+    return chk_result
+
 
 @ib.provider
 class UDS(ib.InfoProvider, factory.MultiBackend):
@@ -158,6 +179,7 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
             self.target_key(backend_id))
 
     @ib.provides('infrastructure.static_description')
+    @ensure_exists
     def get_static_description(self, infra_id, **kwargs):
         """
         .. ibkey::
@@ -180,6 +202,7 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
         return self.get_static_description(infra_id).name
 
     @ib.provides('infrastructure.node_instances')
+    @ensure_exists
     def get_infrastructure_state(self, infra_id, **kwargs):
         """
         .. ibkey::
@@ -187,7 +210,7 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
 
             :param str infra_id: The identifier of the infrastructure.
         """
-        return self.kvstore.query_item(self.infra_state_key(infra_id), dict())
+        return self.kvstore.query_item(self.infra_state_key(infra_id))
 
     @ib.provides('node.find_one')
     def find_one_instance(self, **node_spec):
