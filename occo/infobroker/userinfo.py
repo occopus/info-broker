@@ -23,7 +23,9 @@ log = logging.getLogger('occo.infobroker.uiprovider')
 class UserInfoStrategy(factory.MultiBackend):
     @classmethod
     def instantiate(cls, static_description):
-        spec = static_description.userinfo_strategy or dict(protocol='basic')
+        spec = static_description.userinfo_strategy or 'basic'
+        if isinstance(spec, basestring):
+            spec = dict(protocol=spec)
         log.debug('Instantiating UserInfoStrategy: %r', spec)
         return super(UserInfoStrategy, cls).instantiate(**spec)
 
