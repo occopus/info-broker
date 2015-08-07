@@ -180,7 +180,7 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
 
     @ib.provides('infrastructure.static_description')
     @ensure_exists
-    def get_static_description(self, infra_id, **kwargs):
+    def get_static_description(self, infra_id):
         """
         .. ibkey::
              Queries an infrastructure's static description. Used by the
@@ -192,7 +192,7 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
             self.infra_description_key(infra_id))
 
     @ib.provides('infrastructure.name')
-    def infra_name(self, infra_id, **kwargs):
+    def infra_name(self, infra_id):
         """
         .. ibkey::
              Queries an infrastructure's name.
@@ -203,7 +203,7 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
 
     @ib.provides('infrastructure.node_instances')
     @ensure_exists
-    def get_infrastructure_state(self, infra_id, **kwargs):
+    def get_infrastructure_state(self, infra_id):
         """
         .. ibkey::
              Queries an infrastructure's dynamic state.
@@ -310,7 +310,7 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
         return 'service_composer:{0}'.format(sc_id)
 
     @ib.provides('service_composer.aux_data')
-    def get_service_composer_data(self, sc_id, **kwargs):
+    def get_service_composer_data(self, sc_id):
         """
         .. ibkey::
              Queries information about a service composer instance. The
@@ -370,7 +370,7 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
         """
         raise NotImplementedError()
 
-    def suspend_infrastructure(self, infra_id, reason, **kwargs):
+    def suspend_infrastructure(self, infra_id, reason):
         """
         Register that the given infrastructure is suspended.
 
@@ -386,7 +386,7 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
         sd.suspended = True
         self.update_infrastructure(sd)
 
-    def resume_infrastructure(self, infra_id, **kwargs):
+    def resume_infrastructure(self, infra_id):
         """
         Register that the given infrastructure is resumed.
 
