@@ -39,6 +39,8 @@ def ensure_exists(fun):
         except KeyError:
             raise exc.KeyNotFoundError('Unknown infrastructure', *args), \
                 None, sys.exc_info()[2]
+        else:
+            return result
 
     return chk_result
 
