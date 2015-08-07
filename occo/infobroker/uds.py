@@ -30,18 +30,15 @@ def ensure_exists(fun):
     from functools import wraps
     import sys
 
-    def raise_error(*args):
-        raise exc.KeyNotFoundError('Unknown infrastructure', *args), \
-            None, sys.exc_info()[2]
-
     @wraps(fun)
     def chk_result(*args, **kwargs):
         try:
             result = fun(*args, **kwargs)
             if result is None:
-                raise_error(*args)
+                raise exc.KeyNotFoundError('Unknown infrastructure', *args)
         except KeyError:
-            raise_error(*args)
+            raise exc.KeyNotFoundError('Unknown infrastructure', *args), \
+                None, sys.exc_info()[2]
 
     return chk_result
 
