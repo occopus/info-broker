@@ -202,14 +202,18 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
 
     @ib.provides('infrastructure.node_instances')
     @ensure_exists
-    def get_infrastructure_state(self, infra_id):
+    def get_infrastructure_state(self, infra_id, allow_default=False):
         """
         .. ibkey::
              Queries an infrastructure's dynamic state.
 
             :param str infra_id: The identifier of the infrastructure.
         """
-        return self.kvstore.query_item(self.infra_state_key(infra_id))
+        result = self.kvstore.query_item(self.infra_state_key(infra_id))
+        return \
+            result if result is not None \
+            else dict() if allow_default \
+            else None
 
     @ib.provides('node.find_one')
     def find_one_instance(self, **node_spec):
