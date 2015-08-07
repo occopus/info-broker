@@ -15,6 +15,7 @@ __all__ = ['UserInfoProvider']
 import occo.infobroker as ib
 import occo.util.factory as factory
 import logging
+from occo.util import dict_map
 
 import occo.constants.status as status
 log = logging.getLogger('occo.infobroker.uiprovider')
@@ -32,7 +33,14 @@ class UserInfoStrategy(factory.MultiBackend):
 @factory.register(UserInfoStrategy, 'basic')
 class BasicUserInfo(UserInfoStrategy):
     def get_user_info(self, infra_id):
-        return dict()
+        infobroker = ib.main_info_broker
+        state = infobroker.get('infrastructure.state', infra_id)
+
+        get_address = lambda inst: infobroker.get('node.resource.address', inst)
+        instance_infos = lambda instances: dict_map(instances, get_address)
+        userinfo = dict_map(state, instance_infos)
+
+        return userinfo
 
 @ib.provider
 class UserInfoProvider(ib.InfoProvider):
