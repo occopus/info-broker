@@ -18,7 +18,7 @@ import logging
 from occo.util import dict_map
 
 import occo.constants.status as status
-log = logging.getLogger('occo.infobroker.uiprovider')
+log = logging.getLogger('occo.infobroker.userinfo')
 
 class UserInfoStrategy(factory.MultiBackend):
     @classmethod
