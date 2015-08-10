@@ -10,7 +10,7 @@ userinfo queries.
 
 """
 
-__all__ = ['UserInfoProvider']
+__all__ = ['UserInfoProvider', 'UserInfoStrategy']
 
 import occo.infobroker as ib
 import occo.util.factory as factory
