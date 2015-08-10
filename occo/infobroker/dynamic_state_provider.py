@@ -82,7 +82,7 @@ class DynamicStateProvider(ib.InfoProvider):
         return self.sc.infrastructure_exists(infra_id)
 
     @ib.provides('infrastructure.state')
-    def infra_state(self, infra_id, **kwargs):
+    def infra_state(self, infra_id, allow_default=False):
         """
         .. ibkey::
             Query the dynamic (actual) state of the infrastructure.
@@ -97,7 +97,9 @@ class DynamicStateProvider(ib.InfoProvider):
           parallelized. taking into consideration the time it takes to query
           a node's state, this would be desirable.
         """
-        instances = self.ib.get('infrastructure.node_instances', infra_id)
+        instances = self.ib.get('infrastructure.node_instances',
+                                infra_id,
+                                allow_default)
         log.debug('Gathering states of nodes in infrastructure %r', infra_id)
         for node in instances.itervalues():
             for instance in node.itervalues():

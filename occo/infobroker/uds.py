@@ -15,6 +15,7 @@ querying and manipulation primitives based on a key-value store. (Cf.
 
 __all__ = ['UDS']
 
+import occo.exceptions as exc
 import occo.util.factory as factory
 import occo.infobroker as ib
 from occo.infobroker.brokering import NodeDefinitionSelector
@@ -24,6 +25,25 @@ import logging, warnings
 from occo.exceptions.orchestration import NoMatchingNodeDefinition
 
 log = logging.getLogger('occo.infobroker.uds')
+
+def ensure_exists(fun):
+    from functools import wraps
+    import sys
+
+    @wraps(fun)
+    def chk_result(*args, **kwargs):
+        try:
+            result = fun(*args, **kwargs)
+            if result is None:
+                raise exc.KeyNotFoundError('Unknown infrastructure', *args)
+        except KeyError:
+            raise exc.KeyNotFoundError('Unknown infrastructure', *args), \
+                None, sys.exc_info()[2]
+        else:
+            return result
+
+    return chk_result
+
 
 @ib.provider
 class UDS(ib.InfoProvider, factory.MultiBackend):
@@ -158,7 +178,8 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
             self.target_key(backend_id))
 
     @ib.provides('infrastructure.static_description')
-    def get_static_description(self, infra_id, **kwargs):
+    @ensure_exists
+    def get_static_description(self, infra_id):
         """
         .. ibkey::
              Queries an infrastructure's static description. Used by the
@@ -170,7 +191,7 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
             self.infra_description_key(infra_id))
 
     @ib.provides('infrastructure.name')
-    def infra_name(self, infra_id, **kwargs):
+    def infra_name(self, infra_id):
         """
         .. ibkey::
              Queries an infrastructure's name.
@@ -180,14 +201,19 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
         return self.get_static_description(infra_id).name
 
     @ib.provides('infrastructure.node_instances')
-    def get_infrastructure_state(self, infra_id, **kwargs):
+    @ensure_exists
+    def get_infrastructure_state(self, infra_id, allow_default=False):
         """
         .. ibkey::
              Queries an infrastructure's dynamic state.
 
             :param str infra_id: The identifier of the infrastructure.
         """
-        return self.kvstore.query_item(self.infra_state_key(infra_id), dict())
+        result = self.kvstore.query_item(self.infra_state_key(infra_id))
+        return \
+            result if result is not None \
+            else dict() if allow_default \
+            else None
 
     @ib.provides('node.find_one')
     def find_one_instance(self, **node_spec):
@@ -287,7 +313,7 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
         return 'service_composer:{0}'.format(sc_id)
 
     @ib.provides('service_composer.aux_data')
-    def get_service_composer_data(self, sc_id, **kwargs):
+    def get_service_composer_data(self, sc_id):
         """
         .. ibkey::
              Queries information about a service composer instance. The
@@ -347,7 +373,7 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
         """
         raise NotImplementedError()
 
-    def suspend_infrastructure(self, infra_id, reason, **kwargs):
+    def suspend_infrastructure(self, infra_id, reason):
         """
         Register that the given infrastructure is suspended.
 
@@ -363,7 +389,7 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
         sd.suspended = True
         self.update_infrastructure(sd)
 
-    def resume_infrastructure(self, infra_id, **kwargs):
+    def resume_infrastructure(self, infra_id):
         """
         Register that the given infrastructure is resumed.
 
@@ -439,7 +465,7 @@ class DictUDS(UDS):
         log.debug('Registering new instance for %r/%r: %r',
                   infra_id, node_name, node_id)
         infra_key = self.infra_state_key(infra_id)
-        infra_state = self.get_infrastructure_state(infra_id)
+        infra_state = self.get_infrastructure_state(infra_id, True)
         node_list = infra_state.setdefault(node_name, dict())
         node_list[node_id] = instance_data
         self.kvstore.set_item(infra_key, infra_state)
@@ -529,7 +555,7 @@ class RedisUDS(UDS):
         log.debug('Registering new instance for %r/%r: %r',
                   infra_id, node_name, node_id)
         infra_key = self.infra_state_key(infra_id)
-        infra_state = self.get_infrastructure_state(infra_id)
+        infra_state = self.get_infrastructure_state(infra_id, True)
         node_list = infra_state.setdefault(node_name, dict())
         node_list[node_id] = instance_data
         self.kvstore.set_item(infra_key, infra_state)
