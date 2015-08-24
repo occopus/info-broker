@@ -33,11 +33,11 @@ class DictUDSTest(unittest.TestCase):
                      dict(node_id='3', name='B', infra_id=infraid)]
         for i in instances:
             uds.register_started_node(infraid, i['name'], i)
-        self.assertEqual(uds.kvstore.query_item(state_infrakey),
+        self.assertEqual(uds.get_infrastructure_state(infraid),
                          dict(A={'1': instances[0], '2': instances[1]},
                               B={'3': instances[2]}))
         uds.remove_nodes(infraid, '2', '3')
-        self.assertEqual(uds.kvstore.query_item(state_infrakey),
+        self.assertEqual(uds.get_infrastructure_state(infraid),
                          dict(A={'1': instances[0]},
                               B={}))
         uds.store_failed_nodes(infraid, instances[1], instances[2])
