@@ -88,6 +88,16 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
         """
         return 'infra:{0!s}:state'.format(infra_id)
 
+    def node_state_key(self, infra_id, node_name):
+        """
+        Creates a backend key referencing a specific node of infrastructure's dynamic
+        state.
+
+        :param str infra_id: The internal key of the infrastructure.
+        :param str node_name: The internal key of the node name.
+        """
+        return 'infra:{0!s}:state:{1!s}'.format(infra_id, node_name)
+
     def failed_nodes_key(self, infra_id):
         """
         Creates a backend key referencing a specific infrastructure's dynamic
@@ -209,11 +219,14 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
 
             :param str infra_id: The identifier of the infrastructure.
         """
-        result = self.kvstore.query_item(self.infra_state_key(infra_id))
+        result = self._load_infra_state(infra_id)
         return \
             result if result is not None \
             else dict() if allow_default \
             else None
+
+    def _load_infra_state(self, infra_id):
+        return self.kvstore.query_item(self.infra_state_key(infra_id))
 
     @ib.provides('node.find_one')
     def find_one_instance(self, **node_spec):
@@ -486,6 +499,8 @@ class DictUDS(UDS):
         for i in node_ids:
             try:
                 del infra_state[lookup[i]][i]
+                if not infra_state[lookup[i]]:
+                    del infra_state[lookup[i]]
             except KeyError:
                 raise KeyError('Instance does not exist', i)
         self.kvstore.set_item(infra_key, infra_state)
@@ -514,6 +529,18 @@ class RedisUDS(UDS):
         super(RedisUDS, self).__init__(main_uds)
         backend_config.setdefault('protocol', 'redis')
         self.kvstore = KeyValueStore.instantiate(**backend_config)
+
+    def _load_infra_state(self, infra_id):
+        node_state_pattern = self.node_state_key(infra_id, "*")
+        backend, pattern = self.kvstore.transform_key(node_state_pattern)
+        infra_state = dict()
+        for key in backend.keys(pattern):
+            node_name = key.split(':')[-1]
+            infra_state[node_name] = dict()
+            for node_id_key in backend.hkeys(key):
+                node_state = backend.hget(key,node_id_key)
+                infra_state[node_name][node_id_key] = self.kvstore.deserialize(node_state) if node_state else None
+        return infra_state
 
     def add_infrastructure(self, static_description):
         """
@@ -554,31 +581,26 @@ class RedisUDS(UDS):
         node_id = instance_data['node_id']
         log.debug('Registering new instance for %r/%r: %r',
                   infra_id, node_name, node_id)
-        infra_key = self.infra_state_key(infra_id)
-        infra_state = self.get_infrastructure_state(infra_id, True)
-        node_list = infra_state.setdefault(node_name, dict())
-        node_list[node_id] = instance_data
-        self.kvstore.set_item(infra_key, infra_state)
+        node_state_key = self.node_state_key(infra_id, node_name)
+        backend, key = self.kvstore.transform_key(node_state_key)
+        backend.hset(key, node_id, self.kvstore.serialize(instance_data))
 
     def remove_nodes(self, infra_id, *node_ids):
         """
-        Removes a node instance from an infrastructure's dynamic description.
+        Removes node instance(s) from an infrastructure's dynamic description.
         """
         log.info('Removing node instances from %r: %r', infra_id, node_ids)
         if not node_ids:
             return
 
-        infra_key = self.infra_state_key(infra_id)
-        infra_state = self.get_infrastructure_state(infra_id)
-        lookup = dict((node_id, node_name)
-                      for node_name, instlist in infra_state.iteritems()
-                      for node_id in instlist)
-        for i in node_ids:
-            try:
-                del infra_state[lookup[i]][i]
-            except KeyError:
-                raise KeyError('Instance does not exist', i)
-        self.kvstore.set_item(infra_key, infra_state)
+        node_state_pattern = self.node_state_key(infra_id, "*")
+        backend, pattern = self.kvstore.transform_key(node_state_pattern)
+        for key in backend.keys(pattern):
+            node_name = key.split(':')[-1]
+            for node_id_key in backend.hkeys(key):
+                if node_id_key in node_ids:
+                    backend.hdel(key,node_id_key)
+        return
 
     def store_failed_nodes(self, infra_id, *instance_datas):
         """

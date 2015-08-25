@@ -15,6 +15,7 @@ class DictUDSTest(unittest.TestCase):
         import uuid
         self.uuid = 'unittest-key-{0}'.format(uuid.uuid4())
         self.init()
+        self.maxDiff = None
     def init(self):
         self.protocol = 'dict'
         self.config = dict()
@@ -38,8 +39,7 @@ class DictUDSTest(unittest.TestCase):
                               B={'3': instances[2]}))
         uds.remove_nodes(infraid, '2', '3')
         self.assertEqual(uds.get_infrastructure_state(infraid),
-                         dict(A={'1': instances[0]},
-                              B={}))
+                         dict(A={'1': instances[0]}))
         uds.store_failed_nodes(infraid, instances[1], instances[2])
         self.assertEqual(uds.kvstore.query_item(failed_infrakey),
                          {'2': instances[1],
