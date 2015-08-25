@@ -1,5 +1,5 @@
 argparse==1.2.1
-PyYAML==3.11
 python-dateutil==2.2
+PyYAML==3.11
 redis==2.10.3
 OCCO-Util==0.1.0

@@ -17,9 +17,11 @@ setuptools.setup(
     license='LICENSE.txt',
     description='Information Broker',
     long_description=open('README.txt').read(),
-    install_requires=['argparse',
-                      'PyYAML',
-                      'python-dateutil',
-                      'redis',
-                      'OCCO-Util'],
+    install_requires=[
+        'argparse',
+        'python-dateutil',
+        'PyYAML',
+        'redis',
+        'OCCO-Util',
+    ],
 )
