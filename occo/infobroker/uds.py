@@ -158,7 +158,8 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
             :param str node_type: The identifier of the node's type (see
                 :ref:`nodedescription`\ /``type``.
         """
-        return self.get_one_definition(node_type, **kwargs)
+        return self.get_one_definition(
+            node_type, preselected_backend_ids, strategy, **kwargs)
 
     @ib.provides('backends.auth_data')
     def auth_data(self, backend_id, user_id):
