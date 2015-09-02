@@ -7,6 +7,7 @@ import yaml
 import occo.util as util
 import unittest
 from occo.compiler import StaticDescription
+from occo.exceptions import ConfigurationError
 
 class DictUDSTest(unittest.TestCase):
     def setUp(self):
@@ -20,10 +21,15 @@ class DictUDSTest(unittest.TestCase):
         self.protocol = 'dict'
         self.config = dict()
     def test_inst(self):
+        ib.real_main_uds = None
         self.uds = UDS.instantiate(self.protocol, **self.config)
         self.assertIsNotNone(ib.real_main_uds)
         self.assertEqual(ib.main_uds.register_started_node,
                          self.uds.register_started_node)
+    def test_inst_err(self):
+        ib.real_main_uds = None
+        with self.assertRaises(ConfigurationError):
+            ib.main_uds.register_started_node()
     def test_infra(self):
         infraid = self.uuid
         state_infrakey = 'infra:{0!s}:state'.format(infraid)

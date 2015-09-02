@@ -60,33 +60,44 @@ Example
 """
 
 from provider import *
+from occo.exceptions import ConfigurationError
 
-def proxy_for(object_name):
+def proxy_for(real_object_name, object_name):
     class Proxy(object):
         """
-        Proxy object for the main, singleton info broker.
+        Proxy object for a global singleton object.
 
-        Storing a simple reference to the main info broker is insufficient. In this
-        case, the order of processing and instantiating the configured architecture
-        affects what objects see as the main info broker--most of the time
-        :data:`None`.
+        Storing a simple reference to the global singleton is insufficient. In
+        this case, the *order of processing configuration* (that is, object
+        instantiation order) affects what objects see as the global
+        singleton--most of the time :data:`None`.
 
-        Using a proxy implements late binding: objects will see the real info broker
-        whenever they try to use it.
+        Using a proxy implements late binding: objects will use the singleton
+        object that is present *when* they try to use it.
 
-        This implies, that objects cannot *use* the main info broker in their
-        ``__init__`` method. They can cache it however (``self.ib = ...``), that's
-        the point of using a proxy.
+        This implies, that objects **cannot *use*\ ** the global singleton in
+        their ``__init__`` method. They can store it however (``self.ib =
+        occo.infobroker.main_info_broker``), that's the point of using a proxy.
+
+        :param str real_object_name: The name of the variable that stores the
+            reference to the actual global singleton object.
+        :param str object_name: The name of the global singleton. Only used as
+            information to the user: to distinguish configuration errors.
         """
         def __getattribute__(self, name):
-            return globals()[object_name].__getattribute__(name)
+            real_object = globals()[real_object_name]
+            if real_object is None:
+                raise ConfigurationError(
+                    'Tried to use global singleton without it being configured',
+                    object_name)
+            return real_object.__getattribute__(name)
     return Proxy()
 
 real_main_info_broker = None
-main_info_broker = proxy_for('real_main_info_broker')
+main_info_broker = proxy_for('real_main_info_broker', 'main InfoBroker')
 
 real_main_uds = None
-main_uds = proxy_for('real_main_uds')
+main_uds = proxy_for('real_main_uds', 'UDS')
 
 real_main_eventlog = None
-main_eventlog = proxy_for('real_main_eventlog')
+main_eventlog = proxy_for('real_main_eventlog', 'EventLog')
