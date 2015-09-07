@@ -95,15 +95,20 @@ def proxy_for(real_object_name, object_name):
 
 real_main_info_broker = None
 main_info_broker = proxy_for('real_main_info_broker', 'main InfoBroker')
+"""Global singleton :class:`~occo.infobroker.provider.InfoBroker` instance"""
 
 real_main_uds = None
 main_uds = proxy_for('real_main_uds', 'UDS')
+"""Global singleton :class:`~occo.infobroker.uds.UDS` instance"""
 
 real_main_eventlog = None
 main_eventlog = proxy_for('real_main_eventlog', 'EventLog')
+"""Global singleton :class:`~occo.infobroker.eventlog.EventLog` instance"""
 
 real_main_cloudhandler = None
 main_cloudhandler = proxy_for('real_main_cloudhandler', 'CloudHandler')
+"""Global singleton :class:`~occo.cloudhandler.CloudHandler` instance"""
 
 real_main_servicecomposer = None
 main_servicecomposer = proxy_for('real_main_servicecomposer', 'ServiceComposer')
+"""Global singleton :class:`~occo.servicecomposer.ServiceComposer` instance"""
