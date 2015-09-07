@@ -101,3 +101,9 @@ main_uds = proxy_for('real_main_uds', 'UDS')
 
 real_main_eventlog = None
 main_eventlog = proxy_for('real_main_eventlog', 'EventLog')
+
+real_main_cloudhandler = None
+main_cloudhandler = proxy_for('real_main_cloudhandler', 'CloudHandler')
+
+real_main_servicecomposer = None
+main_servicecomposer = proxy_for('real_main_servicecomposer', 'ServiceComposer')
