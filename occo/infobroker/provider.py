@@ -237,11 +237,6 @@ class InfoProvider(object):
 
     """
 
-    def __init__(self, main_info_broker=False):
-        if main_info_broker:
-            import occo.infobroker
-            occo.infobroker.real_main_info_broker = self
-
     def get(self, key, *args, **kwargs):
         """
         Try to get the information pertaining to the given key.
@@ -321,8 +316,8 @@ class InfoRouter(InfoProvider):
     instance can be considered as the first element in the sub-providers list.
     """
 
-    def __init__(self, sub_providers=[], main_info_broker=False):
-        super(InfoRouter, self).__init__(main_info_broker)
+    def __init__(self, sub_providers=[]):
+        super(InfoRouter, self).__init__()
         self.sub_providers = sub_providers
 
     def _find_responsible(self, key):
@@ -358,11 +353,3 @@ class InfoRouter(InfoProvider):
         mykeys = super(InfoRouter, self).iterkeys
         sub_keys = (i.iterkeys for i in self.sub_providers)
         return flatten(it.chain([mykeys], sub_keys))
-
-class InfoBroker(InfoRouter):
-    """
-    A variant of :class:`InfoRouter` that registers itself as the
-    :var:`occo.api.occoapp.main_info_broker` by default.
-    """
-    def __init__(self, sub_providers=[]):
-        InfoRouter.__init__(self, sub_providers, main_info_broker=True)
