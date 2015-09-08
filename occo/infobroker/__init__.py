@@ -112,3 +112,17 @@ main_cloudhandler = proxy_for('real_main_cloudhandler', 'CloudHandler')
 real_main_servicecomposer = None
 main_servicecomposer = proxy_for('real_main_servicecomposer', 'ServiceComposer')
 """Global singleton :class:`~occo.servicecomposer.ServiceComposer` instance"""
+
+def set_all_singletons(infobroker=None,
+                       uds=None,
+                       eventlog=None,
+                       cloudhandler=None,
+                       servicecomposer=None):
+    """Convenience function to set all singletons at once."""
+    global real_main_info_broker, real_main_uds, real_main_eventlog, \
+        real_main_cloudhandler, real_main_servicecomposer
+    real_main_info_broker = infobroker
+    real_main_uds = uds
+    real_main_eventlog = eventlog
+    real_main_cloudhandler = cloudhandler
+    real_main_servicecomposer = servicecomposer
