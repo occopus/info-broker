@@ -34,9 +34,8 @@ class BasicProviderTest(unittest.TestCase):
 
 class RouterTest(unittest.TestCase):
     def setUp(self):
-        self.provider = TestRouter(sub_providers=[TestProviderA(),
-                                                  TestProviderB()],
-                                   main_info_broker=True)
+        self.provider = ib.real_main_info_broker = \
+            TestRouter(sub_providers=[TestProviderA(), TestProviderB()])
     def test_route_unique_1(self):
         self.assertEqual(self.provider.get("global.brokertime")[0:2], 'BT',
                          "Getting brokertime through router failed.")
