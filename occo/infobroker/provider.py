@@ -237,12 +237,6 @@ class InfoProvider(object):
 
     """
 
-    def __init__(self, **config):
-        self.__dict__.update(config)
-        if config.get('main_info_broker', False):
-            import occo.infobroker
-            occo.infobroker.real_main_info_broker = self
-
     def get(self, key, *args, **kwargs):
         """
         Try to get the information pertaining to the given key.
@@ -322,9 +316,9 @@ class InfoRouter(InfoProvider):
     instance can be considered as the first element in the sub-providers list.
     """
 
-    def __init__(self, **config):
-        config.setdefault('sub_providers', [])
-        super(InfoRouter, self).__init__(**config)
+    def __init__(self, sub_providers=[]):
+        super(InfoRouter, self).__init__()
+        self.sub_providers = sub_providers
 
     def _find_responsible(self, key):
         """Return the first provider that can handle the request; or None."""

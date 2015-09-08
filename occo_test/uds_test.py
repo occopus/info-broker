@@ -21,9 +21,7 @@ class DictUDSTest(unittest.TestCase):
         self.protocol = 'dict'
         self.config = dict()
     def test_inst(self):
-        ib.real_main_uds = None
-        self.uds = UDS.instantiate(self.protocol, **self.config)
-        self.assertIsNotNone(ib.real_main_uds)
+        self.uds = ib.real_main_uds = UDS.instantiate(self.protocol, **self.config)
         self.assertEqual(ib.main_uds.register_started_node,
                          self.uds.register_started_node)
     def test_inst_err(self):

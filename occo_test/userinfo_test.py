@@ -27,7 +27,6 @@ test_infra_noextra = StaticDescription("""
 class DummyProvider(ib.InfoRouter):
     def __init__(self):
         super(DummyProvider, self).__init__(
-            main_info_broker=True,
             sub_providers=[
                 ui.UserInfoProvider(),
             ]
@@ -55,7 +54,7 @@ class UserInfoTest(unittest.TestCase):
         self.assertIsInstance(eui, TUI)
 
     def test_extra(self):
-        mib = DummyProvider()
+        mib = ib.real_main_info_broker = DummyProvider()
         userinfo = mib.get('infrastructure.userinfo', test_infra.infra_id)
         self.assertEqual(userinfo, 'UserInfo[1]')
 
