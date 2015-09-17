@@ -104,6 +104,7 @@ class DynamicStateProvider(ib.InfoProvider):
         for node in instances.itervalues():
             for instance in node.itervalues():
                 instance['state'] = self.ib.get('node.state', instance)
+                instance['resource_address'] = self.ib.get('node.resource.address',instance)
         return instances
 
     @ib.provides('node.attribute')
