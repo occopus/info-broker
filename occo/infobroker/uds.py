@@ -82,6 +82,39 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
         """
         return 'infra:{0!s}:state'.format(infra_id)
 
+    def infra_scaling_key(self, infra_id):
+        """
+        Creates a backend key referencing a specific infrastructure's scaling
+        related information.
+
+        :param str infra_id: The internal key of the infrastructure.
+        """
+        return 'infra:{0!s}:scaling'.format(infra_id)
+
+    def node_scaling_target_count_subkey(self, node_name):
+        """
+        Creates a backend key referencing a node's target count.
+
+        :param str node_name: The name of the node.
+        """
+        return 'node-count-{0!s}'.format(node_name)
+
+    def node_scaling_create_node_subkey(self, node_name, node_id):
+        """
+        Creates a backend key referencing a request for creating a new node.
+
+        :param str node_name: The name of the node.
+        """
+        return 'node-create:{0!s}:{1!s}'.format(node_name, node_id)
+
+    def node_scaling_destroy_node_subkey(self, node_name, node_id):
+        """
+        Creates a backend key referencing a request for creating a new node.
+
+        :param str node_name: The name of the node.
+        """
+        return 'node-destroy:{0!s}:{1!s}'.format(node_name, node_id)
+
     def node_state_key(self, infra_id, node_name):
         """
         Creates a backend key referencing a specific node of infrastructure's dynamic
@@ -428,6 +461,18 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
         """
         raise NotImplementedError()
 
+    def set_scaling_target_count(self, infra_id, node_name, target_count):
+        """
+        Store target node count for a given node.
+        """
+        raise NotImplementedError()
+
+    def get_scaling_target_count(self, infra_id, node_name):
+        """
+        Returns the target node count for a given node.
+        """
+        raise NotImplementedError()
+
 @factory.register(UDS, 'dict')
 class DictUDS(UDS):
     def __init__(self, **backend_config):
@@ -610,3 +655,112 @@ class RedisUDS(UDS):
         failed_nodes = self.kvstore.query_item(infra_key, dict())
         failed_nodes.update(dict((i['node_id'], i) for i in instance_datas))
         self.kvstore.set_item(infra_key, failed_nodes)
+        
+    def set_scaling_target_count(self, infra_id, node_name, target_count):
+        """
+        Store target node count for a given node.
+        """
+        log.debug('Storing new target count for %r/%r: %r',
+                  infra_id, node_name, target_count)
+        infra_scaling_key = self.infra_scaling_key(infra_id)
+        node_target_count_subkey = self.node_scaling_target_count_subkey(node_name)
+        backend, key = self.kvstore.transform_key(infra_scaling_key)
+        backend.hset(key, node_target_count_subkey, target_count)
+
+    def get_scaling_target_count(self, infra_id, node_name):
+        """
+        Returns the target node count for a given node.
+        """
+        log.debug('Querying target count for %r/%r',
+                  infra_id, node_name)
+        infra_scaling_key = self.infra_scaling_key(infra_id)
+        node_target_count_subkey = self.node_scaling_target_count_subkey(node_name)
+        backend, key = self.kvstore.transform_key(infra_scaling_key)
+        return backend.hget(key, node_target_count_subkey)
+
+    def set_scaling_createnode(self, infra_id, node_name, node_id = None):
+        """
+        Store create node request for a given node.
+        """
+        import uuid
+        if not node_id:
+            node_id = str(uuid.uuid4())
+        log.debug('Storing new create node request for %r/%r: %r',
+                  infra_id, node_name, node_id)
+        infra_scaling_key = self.infra_scaling_key(infra_id)
+        node_create_node_subkey = self.node_scaling_create_node_subkey(node_name, node_id)
+        backend, key = self.kvstore.transform_key(infra_scaling_key)
+        backend.hset(key, node_create_node_subkey, "")
+
+    def set_scaling_destroynode(self, infra_id, node_name, node_id):
+        """
+        Store destroy node request for a given node.
+        """
+        log.debug('Storing new destroy node request for %r/%r: %r',
+                  infra_id, node_name, node_id)
+        infra_scaling_key = self.infra_scaling_key(infra_id)
+        node_destroy_node_subkey = self.node_scaling_destroy_node_subkey(node_name, node_id)
+        backend, key = self.kvstore.transform_key(infra_scaling_key)
+        backend.hset(key, node_destroy_node_subkey, "")
+
+    def get_scaling_createnode(self, infra_id, node_name):
+        """
+        Return list of create node request ids for a given node.
+        """
+        log.debug('Querying create node requests for %r/%r',
+                  infra_id, node_name)
+        infra_scaling_key = self.infra_scaling_key(infra_id)
+        backend, key = self.kvstore.transform_key(infra_scaling_key)
+        keylist = backend.hkeys(key)
+        if not keylist:
+                return dict()
+        pattern = self.node_scaling_create_node_subkey(node_name, "")
+        return [item[len(pattern):] for item in keylist if item.startswith(pattern)] 
+
+    def get_scaling_destroynode(self, infra_id, node_name):
+        """
+        Return list of destroy node request ids for a given node.
+        """
+        log.debug('Querying destroy node requests for %r/%r',
+                  infra_id, node_name)
+        infra_scaling_key = self.infra_scaling_key(infra_id)
+        backend, key = self.kvstore.transform_key(infra_scaling_key)
+        keylist = backend.hkeys(key)
+        if not keylist:
+                return dict()
+        pattern = self.node_scaling_destroy_node_subkey(node_name, "")
+        return [item[len(pattern):] for item in keylist if item.startswith(pattern)] 
+
+    def del_scaling_createnode(self, infra_id, node_name, node_id = None):
+        """
+        Delete create node request(s) for a given node.
+        """
+        log.debug('Delete create node request(s) for %r/%r: %r',
+                  infra_id, node_name, node_id)
+        infra_scaling_key = self.infra_scaling_key(infra_id)
+        backend, key = self.kvstore.transform_key(infra_scaling_key)
+        if node_id:
+            node_create_node_subkey = self.node_scaling_create_node_subkey(node_name, node_id)
+            backend.hdel(key, node_create_node_subkey)
+        else:
+            raise NotImplementedError() 
+        
+
+    def del_scaling_destroynode(self, infra_id, node_name, node_id = None):
+        """
+        Delete destroy node request(s) for a given node.
+        """
+        log.debug('Delete destroy node request(s) for %r/%r: %r',
+                  infra_id, node_name, node_id)
+        infra_scaling_key = self.infra_scaling_key(infra_id)
+        backend, key = self.kvstore.transform_key(infra_scaling_key)
+        if node_id:
+            node_destroy_node_subkey = self.node_scaling_destroy_node_subkey(node_name, node_id)
+            backend.hdel(key, node_destroy_node_subkey)
+        else:
+            raise NotImplementedError() 
+        
+
+
+
+
