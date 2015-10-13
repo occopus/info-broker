@@ -678,30 +678,32 @@ class RedisUDS(UDS):
         backend, key = self.kvstore.transform_key(infra_scaling_key)
         return backend.hget(key, node_target_count_subkey)
 
-    def set_scaling_createnode(self, infra_id, node_name, node_id = None):
+    def set_scaling_createnode(self, infra_id, node_name, count = 1):
         """
         Store create node request for a given node.
         """
         import uuid
-        if not node_id:
-            node_id = str(uuid.uuid4())
-        log.debug('Storing new create node request for %r/%r: %r',
-                  infra_id, node_name, node_id)
+        log.debug('Storing new create node request for %r/%r',
+                  infra_id, node_name)
         infra_scaling_key = self.infra_scaling_key(infra_id)
-        node_create_node_subkey = self.node_scaling_create_node_subkey(node_name, node_id)
         backend, key = self.kvstore.transform_key(infra_scaling_key)
-        backend.hset(key, node_create_node_subkey, "")
+        for counter in range(count): 
+            key_id = str(uuid.uuid4())
+            node_create_node_subkey = self.node_scaling_create_node_subkey(node_name, key_id)
+            backend.hset(key, node_create_node_subkey, "")
 
-    def set_scaling_destroynode(self, infra_id, node_name, node_id):
+    def set_scaling_destroynode(self, infra_id, node_name, node_id = None):
         """
         Store destroy node request for a given node.
         """
+        import uuid
+        key_id = str(uuid.uuid4())
         log.debug('Storing new destroy node request for %r/%r: %r',
                   infra_id, node_name, node_id)
         infra_scaling_key = self.infra_scaling_key(infra_id)
-        node_destroy_node_subkey = self.node_scaling_destroy_node_subkey(node_name, node_id)
+        node_destroy_node_subkey = self.node_scaling_destroy_node_subkey(node_name, key_id)
         backend, key = self.kvstore.transform_key(infra_scaling_key)
-        backend.hset(key, node_destroy_node_subkey, "")
+        backend.hset(key, node_destroy_node_subkey, node_id if node_id else "")
 
     def get_scaling_createnode(self, infra_id, node_name):
         """
@@ -715,7 +717,11 @@ class RedisUDS(UDS):
         if not keylist:
                 return dict()
         pattern = self.node_scaling_create_node_subkey(node_name, "")
-        return [item[len(pattern):] for item in keylist if item.startswith(pattern)] 
+        retdict = dict()
+        for item in keylist:
+            if item.startswith(pattern):
+                retdict.update( { item[len(pattern):] : "" } )
+        return retdict
 
     def get_scaling_destroynode(self, infra_id, node_name):
         """
@@ -725,37 +731,41 @@ class RedisUDS(UDS):
                   infra_id, node_name)
         infra_scaling_key = self.infra_scaling_key(infra_id)
         backend, key = self.kvstore.transform_key(infra_scaling_key)
-        keylist = backend.hkeys(key)
-        if not keylist:
+        fulllist = backend.hgetall(key)
+        if not fulllist:
                 return dict()
         pattern = self.node_scaling_destroy_node_subkey(node_name, "")
-        return [item[len(pattern):] for item in keylist if item.startswith(pattern)] 
+        retdict = dict()
+        for item,value in fulllist.iteritems():
+            if item.startswith(pattern):
+                retdict.update( { item[len(pattern):] : value } )
+        return retdict
 
-    def del_scaling_createnode(self, infra_id, node_name, node_id = None):
+    def del_scaling_createnode(self, infra_id, node_name, key_id):
         """
         Delete create node request(s) for a given node.
         """
-        log.debug('Delete create node request(s) for %r/%r: %r',
-                  infra_id, node_name, node_id)
+        log.debug('Delete create node request(s) for %r/%r',
+                  infra_id, node_name)
         infra_scaling_key = self.infra_scaling_key(infra_id)
         backend, key = self.kvstore.transform_key(infra_scaling_key)
-        if node_id:
-            node_create_node_subkey = self.node_scaling_create_node_subkey(node_name, node_id)
+        if key_id:
+            node_create_node_subkey = self.node_scaling_create_node_subkey(node_name, key_id)
             backend.hdel(key, node_create_node_subkey)
         else:
             raise NotImplementedError() 
         
 
-    def del_scaling_destroynode(self, infra_id, node_name, node_id = None):
+    def del_scaling_destroynode(self, infra_id, node_name, key_id):
         """
         Delete destroy node request(s) for a given node.
         """
-        log.debug('Delete destroy node request(s) for %r/%r: %r',
-                  infra_id, node_name, node_id)
+        log.debug('Delete destroy node request(s) for %r/%r',
+                  infra_id, node_name)
         infra_scaling_key = self.infra_scaling_key(infra_id)
         backend, key = self.kvstore.transform_key(infra_scaling_key)
-        if node_id:
-            node_destroy_node_subkey = self.node_scaling_destroy_node_subkey(node_name, node_id)
+        if key_id:
+            node_destroy_node_subkey = self.node_scaling_destroy_node_subkey(node_name, key_id)
             backend.hdel(key, node_destroy_node_subkey)
         else:
             raise NotImplementedError() 
