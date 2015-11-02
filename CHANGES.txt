@@ -1,1 +1,9 @@
-v0.1.0 -- Initial release
+
+v0.2.0 - November 2015
+- Implement info provider
+- Implement info router
+- Add @provides decorator
+- Implement loading providers from YAML
+- Implement interface with UDS
+- Multibackend instantiation
+- Add eventlog
