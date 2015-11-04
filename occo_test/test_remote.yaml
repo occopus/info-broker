@@ -1,0 +1,15 @@
+default_mqconfig: !yaml_import &MQCFG
+    url: file://mqcfg.yaml
+server_mqconfig: &SERVER_MQCFG
+    <<: *MQCFG
+    queue: remote_infobroker_test
+real_provider: !TestRouter
+    sub_providers:
+        - !TestProviderA
+        - !TestProviderB
+provider_stub: !RemoteProviderStub
+    rpc_config:
+        <<: *MQCFG
+        routing_key: remote_infobroker_test
+logging: !yaml_import
+    url: file://logging.yaml

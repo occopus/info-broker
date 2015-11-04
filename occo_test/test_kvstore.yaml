@@ -1,0 +1,7 @@
+default_mqconfig: !yaml_import &MQCFG
+    url: file://mqcfg.yaml
+server_mqconfig: &SERVER_MQCFG
+    <<: *MQCFG
+    queue: kvs_infobroker_test
+logging: !yaml_import
+    url: file://logging.yaml
