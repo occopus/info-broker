@@ -697,18 +697,20 @@ class RedisUDS(UDS):
         store_time = backend.hget(key, node_id)
         if is_failed:
             if store_time is not None:
-                log.debug('Stored time: %r',store_time)
-                log.debug('Actual time: %r',time.time())
+                #log.debug('Stored time: %r',store_time)
+                #log.debug('Actual time: %r',time.time())
                 diff = time.time()-float(store_time)
-                log.debug('Difference: %r',diff)
+                #log.debug('Difference: %r',diff)
+                log.debug('Failing period for %r/%r is %r', infra_id,
+                        node_id, diff)
                 return diff
             else:
                 store_time = time.time()
-                log.debug('Storing time: %r',time.time())
+                #log.debug('Storing time: %r',time.time())
                 backend.hset(key, node_id, store_time)
                 return 0
         if not is_failed and store_time is not None:
-            log.debug('Removing time : %r',store_time)
+            #log.debug('Removing time : %r',store_time)
             backend.hdel(key, node_id)
             return 0
 
