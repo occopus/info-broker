@@ -32,6 +32,7 @@ from occo.infobroker.brokering import NodeDefinitionSelector
 from occo.infobroker.kvstore import KeyValueStore
 from occo.util import flatten
 import logging, warnings
+import time, datetime
 from occo.exceptions.orchestration import NoMatchingNodeDefinition
 
 log = logging.getLogger('occo.infobroker.uds')
@@ -91,6 +92,15 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
         :param str infra_id: The internal key of the infrastructure.
         """
         return 'infra:{0!s}:state'.format(infra_id)
+
+    def infra_failtime_key(self, infra_id):
+        """
+        Creates a backend key referencing a specific infrastructure's scaling
+        related information.
+
+        :param str infra_id: The internal key of the infrastructure.
+        """
+        return 'infra:{0!s}:failtime'.format(infra_id)
 
     def infra_scaling_key(self, infra_id):
         """
@@ -665,7 +675,43 @@ class RedisUDS(UDS):
         failed_nodes = self.kvstore.query_item(infra_key, dict())
         failed_nodes.update(dict((i['node_id'], i) for i in instance_datas))
         self.kvstore.set_item(infra_key, failed_nodes)
-        
+    
+    def get_failing_period(self, infra_id, node_id, is_failed):
+        """
+        Check if timeout has expired since node service health check
+        failed first. 
+        If is_failed TRUE:
+            If time is stored:
+                queries and compares
+                return difference
+            else:
+                stores current timestamp
+                returns timeout
+        If is_failed FALSE:
+            removes stored timestamp
+            returns timeout
+        """
+        log.debug('Query failing period for %r/%r',infra_id, node_id)
+        infra_failtime_key = self.infra_failtime_key(infra_id)
+        backend, key = self.kvstore.transform_key(infra_failtime_key)
+        store_time = backend.hget(key, node_id)
+        if is_failed:
+            if store_time is not None:
+                log.debug('Stored time: %r',store_time)
+                log.debug('Actual time: %r',time.time())
+                diff = time.time()-float(store_time)
+                log.debug('Difference: %r',diff)
+                return diff
+            else:
+                store_time = time.time()
+                log.debug('Storing time: %r',time.time())
+                backend.hset(key, node_id, store_time)
+                return 0
+        if not is_failed and store_time is not None:
+            log.debug('Removing time : %r',store_time)
+            backend.hdel(key, node_id)
+            return 0
+
     def set_scaling_target_count(self, infra_id, node_name, target_count):
         """
         Store target node count for a given node.
