@@ -67,7 +67,7 @@ class DynamicStateProvider(ib.InfoProvider):
             sv_state = self.ib.get('node.service_health_check.state', instance_data)
             if sv_state != status.READY:
                 afp = main_uds.get_failing_period(instance_data['infra_id'],instance_data['node_id'],True)
-                timeout = instance_data.get('synch_strategy',dict()).get('timeout',300)
+                timeout = instance_data.get('service_health_check',dict()).get('timeout',600)
                 if afp > timeout:
                     sv_state = status.FAIL
             else:
