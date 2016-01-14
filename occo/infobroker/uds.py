@@ -691,7 +691,7 @@ class RedisUDS(UDS):
             removes stored timestamp
             returns timeout
         """
-        log.debug('Query failing period for %r/%r',infra_id, node_id)
+        #log.debug('Query failing period for %r/%r',infra_id, node_id)
         infra_failtime_key = self.infra_failtime_key(infra_id)
         backend, key = self.kvstore.transform_key(infra_failtime_key)
         store_time = backend.hget(key, node_id)
@@ -701,8 +701,8 @@ class RedisUDS(UDS):
                 #log.debug('Actual time: %r',time.time())
                 diff = time.time()-float(store_time)
                 #log.debug('Difference: %r',diff)
-                log.debug('Failing period for %r/%r is %r', infra_id,
-                        node_id, diff)
+                #log.debug('Failing period for %r/%r is %r', infra_id,
+                #        node_id, diff)
                 return diff
             else:
                 store_time = time.time()
