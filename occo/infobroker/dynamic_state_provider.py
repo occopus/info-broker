@@ -68,8 +68,8 @@ class DynamicStateProvider(ib.InfoProvider):
             if sv_state != status.READY:
                 afp = main_uds.get_failing_period(instance_data['infra_id'],instance_data['node_id'],True)
                 timeout = instance_data.get('resolved_node_definition',dict()).get('service_health_check',dict()).get('timeout',600)
-		log.warning('Service on node %r/%r is down for %r seconds! (timeout: %r)', 
-				instance_data['infra_id'],instance_data['node_id'], afp, timeout)
+		log.warning('Service on node %r (NodeId: %r) is down for %.3f seconds! (Timeout for restart: %is)', 
+				instance_data.get('resolved_node_definition',dict()).get('name'),instance_data['node_id'], afp, timeout)
                 if afp > timeout:
                     sv_state = status.FAIL
             else:
