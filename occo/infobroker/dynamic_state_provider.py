@@ -23,6 +23,7 @@ cloud-related queries.
 __all__ = ['DynamicStateProvider']
 
 import occo.infobroker as ib
+from occo.infobroker import main_uds
 import logging
 
 import occo.constants.status as status
@@ -60,19 +61,34 @@ class DynamicStateProvider(ib.InfoProvider):
         """
         log.debug('Querying node state %r', instance_data['node_id'])
         ch_state = self.ib.get('node.resource.state', instance_data)
-        sc_state = self.ib.get('node.service.state', instance_data)
-        log.debug('Node states are {0!r}:{1!r}'.format(ch_state, sc_state))
+        sc_state = self.ib.get('node.service.state', instance_data) \
+            if ch_state == status.READY else status.UNKNOWN
+        if sc_state == status.READY:
+            sv_state = self.ib.get('node.service_health_check.state', instance_data)
+            if sv_state != status.READY:
+                afp = main_uds.get_failing_period(instance_data['infra_id'],instance_data['node_id'],True)
+                timeout = instance_data.get('resolved_node_definition',dict()).get('service_health_check',dict()).get('timeout',600)
+		log.warning('Service on node %r (NodeId: %r) is down for %.3f seconds! (Timeout for restart: %is)', 
+				instance_data.get('resolved_node_definition',dict()).get('name'),instance_data['node_id'], afp, timeout)
+                if afp > timeout:
+                    sv_state = status.FAIL
+            else:
+                afp = main_uds.get_failing_period(instance_data['infra_id'],instance_data['node_id'],False)
+        else:
+            sv_state = status.UNKNOWN
+        log.debug('Node states are {0!r}:{1!r}:{2!r}'.format(ch_state, sc_state,
+            sv_state))
         
-        if ch_state == status.READY and sc_state == status.READY:
+        if ch_state == status.READY and sc_state == status.READY and sv_state == status.READY:
             return status.READY
-        elif ch_state == status.FAIL or sc_state == status.FAIL:
+        elif ch_state == status.FAIL or sc_state == status.FAIL or sv_state == status.FAIL:
             return status.FAIL
-        elif ch_state == status.SHUTDOWN or sc_state == status.SHUTDOWN:
+        elif ch_state == status.SHUTDOWN or sc_state == status.SHUTDOWN or sv_state == status.SHUTDOWN:
             return status.SHUTDOWN
-        elif ch_state == status.TMP_FAIL or sc_state == status.TMP_FAIL:
+        elif ch_state == status.TMP_FAIL or sc_state == status.TMP_FAIL or sv_state == status.TMP_FAIL:
             return status.TMP_FAIL
-        elif (ch_state == status.PENDING or sc_state == status.PENDING or
-              ch_state == status.UNKNOWN or sc_state == status.UNKNOWN):
+        elif (ch_state == status.PENDING or sc_state == status.PENDING or sv_state == status.PENDING or
+              ch_state == status.UNKNOWN or sc_state == status.UNKNOWN or sv_state == status.UNKNOWN):
             return status.PENDING
         else:
             raise NotImplementedError()
