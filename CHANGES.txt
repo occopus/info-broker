@@ -7,3 +7,9 @@ v0.2.0 - November 2015
 - Implement interface with UDS
 - Multibackend instantiation
 - Add eventlog
+
+v0.3.0 - January 2016
+- synch_strategy refactored to service_health_check
+- compound states includes service health checking
+- introduce timeout for service health check
+
