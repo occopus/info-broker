@@ -89,7 +89,7 @@ class EventLog(factory.MultiBackend):
         self.log_event(
             instance_data['infra_id'],
             'nodestart',
-            backend_id=instance_data['backend_id'],
+            endpoint=instance_data['resource']['endpoint'],
             node_id=instance_data['node_id'],
         )
 
@@ -98,7 +98,7 @@ class EventLog(factory.MultiBackend):
         self.log_event(
             instance_data['infra_id'],
             'nodefailed',
-            backend_id=instance_data['backend_id'],
+            endpoint=instance_data['resource']['endpoint'],
             node_id=instance_data['node_id'],
         )
 
@@ -107,7 +107,7 @@ class EventLog(factory.MultiBackend):
         self.log_event(
             instance_data['infra_id'],
             'nodedrop',
-            backend_id=instance_data['backend_id'],
+            endpoint=instance_data['resource']['endpoint'],
             node_id=instance_data['node_id'],
         )
 
