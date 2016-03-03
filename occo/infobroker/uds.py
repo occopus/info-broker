@@ -158,7 +158,7 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
         """
         Creates a backend key referencing a user's stored authentication
         data to a given OCCO backend (a.k.a.
-        :class:`~occo.cloudhandler.cloudhandler.CloudHandler` instance).
+        :class:`~occo.resourcehandler.resourcehandler.ResourceHandler` instance).
 
         :param str backend_id: The name of the OCCO backend.
         :param str user_id: User id (duh).
@@ -214,7 +214,7 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
         .. ibkey::
              Queries a user's stored authentication data to a given OCCO
              backend (a.k.a.
-             :class:`~occo.cloudhandler.cloudhandler.CloudHandler` instance).
+             :class:`~occo.resourcehandler.resourcehandler.ResourceHandler` instance).
 
             :param str backend_id: The name of the OCCO backend.
             :param str user_id: User id (duh).

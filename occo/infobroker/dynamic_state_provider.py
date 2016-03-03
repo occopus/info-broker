@@ -14,7 +14,7 @@
 
 """
 :class:`~occo.infobroker.provider.InfoProvider` module implementing
-cloud-related queries.
+resource-related queries.
 
 .. moduleauthor:: Adam Visegradi <adam.visegradi@sztaki.mta.hu>
 
@@ -36,12 +36,12 @@ class DynamicStateProvider(ib.InfoProvider):
     class contains query implementations specific to the dynamic state of
     an infrastructure.
 
-    .. todo:: There will be a separate CloudHandlerProvider (OCD-249). Use that
+    .. todo:: There will be a separate ResourceHandlerProvider (OCD-249). Use that
         through ``self.ib.get`` instead of directly referencing the CH instance.
     """
-    def __init__(self, service_composer, cloud_handler):
+    def __init__(self, service_composer, resource_handler):
         self.ib = ib.main_info_broker
-        self.ch = cloud_handler
+        self.ch = resource_handler
         self.sc = service_composer
 
     @ib.provides('node.state')
@@ -55,8 +55,8 @@ class DynamicStateProvider(ib.InfoProvider):
                 content depends on the backends actually the request.
 
             :returns: The compound state of the node based on its states
-                according to the :meth:`Cloud Handler
-                <occo.cloudhandler.cloudhandler.CloudHandler.get_node_state>`
+                according to the :meth:`Resource Handler
+                <occo.resourcehandler.resourcehandler.ResourceHandler.get_node_state>`
                 and the :meth:`Service Composer <n/a>`
         """
         log.debug('Querying node state %r', instance_data['node_id'])
@@ -146,7 +146,7 @@ class DynamicStateProvider(ib.InfoProvider):
             :returns: Node attribute as defined by the actual service composer.
 
         .. todo:: This should be moved to a ServiceComposerHandler (a la
-            CloudHandlerProvider).
+            ResourceHandlerProvider).
         """
         log.debug('Querying node attribute %r[%r]', node_id, attribute)
         return self.sc.get_node_attribute(node_id, attribute)
