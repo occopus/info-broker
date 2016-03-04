@@ -364,17 +364,17 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
         nodes = self._filtered_infra(infra_id, name)
         return self._filter_by_nodeid(nodes, node_id)
 
-    def service_composer_key(self, sc_id):
+    def config_manager_key(self, sc_id):
         """
         Creates a backend key referencing a service composer's instance
         information.
 
         :param str sc_id: Identifier of the service composer instance.
         """
-        return 'service_composer:{0}'.format(sc_id)
+        return 'config_manager:{0}'.format(sc_id)
 
-    @ib.provides('service_composer.aux_data')
-    def get_service_composer_data(self, sc_id):
+    @ib.provides('config_manager.aux_data')
+    def get_config_manager_data(self, sc_id):
         """
         .. ibkey::
              Queries information about a service composer instance. The
@@ -383,7 +383,7 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
 
             :param str sc_id: The identifier of the service composer instance.
         """
-        return self.kvstore.query_item(self.service_composer_key(sc_id), dict())
+        return self.kvstore.query_item(self.config_manager_key(sc_id), dict())
 
     def get_filtered_definition_list(self, node_type,
                                      preselected_backend_ids=[]):
