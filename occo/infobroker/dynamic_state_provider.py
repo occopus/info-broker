@@ -39,10 +39,10 @@ class DynamicStateProvider(ib.InfoProvider):
     .. todo:: There will be a separate ResourceHandlerProvider (OCD-249). Use that
         through ``self.ib.get`` instead of directly referencing the CH instance.
     """
-    def __init__(self, service_composer, resource_handler):
+    def __init__(self, config_manager, resource_handler):
         self.ib = ib.main_info_broker
         self.ch = resource_handler
-        self.sc = service_composer
+        self.sc = config_manager
 
     @ib.provides('node.state')
     def get_node_state(self, instance_data):
@@ -137,7 +137,7 @@ class DynamicStateProvider(ib.InfoProvider):
     def nodeattr(self, node_id, attribute):
         """
         .. ibkey::
-            Query node attribute from the ServiceComposer.
+            Query node attribute from the ConfigManager.
 
             :param str node_id: The identifier of the node instance.
             :param attribute: Attribute specification.
@@ -145,7 +145,7 @@ class DynamicStateProvider(ib.InfoProvider):
 
             :returns: Node attribute as defined by the actual service composer.
 
-        .. todo:: This should be moved to a ServiceComposerHandler (a la
+        .. todo:: This should be moved to a ConfigManagerHandler (a la
             ResourceHandlerProvider).
         """
         log.debug('Querying node attribute %r[%r]', node_id, attribute)

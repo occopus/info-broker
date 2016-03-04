@@ -117,20 +117,20 @@ real_main_resource_handler = None
 main_resourcehandler = proxy_for('real_main_resourcehandler', 'ResourceHandler')
 """Global singleton :class:`~occo.resourcehandler.ResourceHandler` instance"""
 
-real_main_servicecomposer = None
-main_servicecomposer = proxy_for('real_main_servicecomposer', 'ServiceComposer')
-"""Global singleton :class:`~occo.servicecomposer.ServiceComposer` instance"""
+real_main_configmanager = None
+main_configmanager = proxy_for('real_main_configmanager', 'ConfigManager')
+"""Global singleton :class:`~occo.configmanager.ConfigManager` instance"""
 
 def set_all_singletons(infobroker=None,
                        uds=None,
                        eventlog=None,
                        resourcehandler=None,
-                       servicecomposer=None):
+                       configmanager=None):
     """Convenience function to set all singletons at once."""
     global real_main_info_broker, real_main_uds, real_main_eventlog, \
-        real_main_resourcehandler, real_main_servicecomposer
+        real_main_resourcehandler, real_main_configmanager
     real_main_info_broker = infobroker
     real_main_uds = uds
     real_main_eventlog = eventlog
     real_main_resourcehandler = resourcehandler
-    real_main_servicecomposer = servicecomposer
+    real_main_configmanager = configmanager
