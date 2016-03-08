@@ -373,6 +373,37 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
         """
         return 'config_manager:{0}'.format(sc_id)
 
+    @ib.provides('config_managers')
+    def get_config_mangager_list(self, infra_id):
+	sd = self.get_static_description(infra_id)
+        cmlist=[]
+        for node in sd.nodes:
+            nd = self.ib.get('node.definition',
+                        node['type'],
+                        preselected_backend_ids=(
+                           node.get('selected_resource_handler')
+                           or node.get('selected_resource_handlers')),
+                           strategy=node.get('backend_selection_strategy', 'random'))
+            scinfo={}
+            if (not 'config_management' in nd) or (not 'type' in nd['config_management']):
+                type = 'dummy'
+            else:
+                type = nd['config_management']['type']
+            if (not 'config_management' in nd) or (not 'endpoint' in nd['config_management']):
+                endpoint = 'null'
+            else:
+                endpoint = nd['config_management']['endpoint']
+            found = False
+            for cm in cmlist:
+                if cm['type'] == type and cm['endpoint'] == endpoint:
+                    found = True
+            if not found:
+                cminfo=nd.get('config_management',dict())
+                cminfo['type']=type
+                cminfo['endpoint']=endpoint
+                cmlist.append(cminfo)
+        return cmlist
+
     @ib.provides('config_manager.aux_data')
     def get_config_manager_data(self, sc_id):
         """
