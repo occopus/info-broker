@@ -121,6 +121,8 @@ real_main_configmanager = None
 main_configmanager = proxy_for('real_main_configmanager', 'ConfigManager')
 """Global singleton :class:`~occo.configmanager.ConfigManager` instance"""
 
+configured_auth_data_path = None
+
 def set_all_singletons(infobroker=None,
                        uds=None,
                        eventlog=None,

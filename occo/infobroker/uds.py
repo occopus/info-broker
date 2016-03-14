@@ -31,6 +31,7 @@ import occo.infobroker as ib
 from occo.infobroker.brokering import NodeDefinitionSelector
 from occo.infobroker.kvstore import KeyValueStore
 from occo.util import flatten
+from occo.util.config import yaml_load_file
 import logging, warnings
 import time, datetime
 from occo.exceptions.orchestration import NoMatchingNodeDefinition
@@ -154,17 +155,6 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
         """
         return 'infra:{0!s}:failed_nodes'.format(infra_id)
 
-    def auth_data_key(self, backend_id, user_id):
-        """
-        Creates a backend key referencing a user's stored authentication
-        data to a given OCCO backend (a.k.a.
-        :class:`~occo.resourcehandler.resourcehandler.ResourceHandler` instance).
-
-        :param str backend_id: The name of the OCCO backend.
-        :param str user_id: User id (duh).
-        """
-        return 'auth:{0!s}:{1!s}'.format(backend_id, user_id)
-
     def target_key(self, backend_id):
         """
         WTF
@@ -209,22 +199,26 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
             node_type, preselected_backend_ids, strategy, **kwargs)
 
     @ib.provides('backends.auth_data')
-    def auth_data(self, backend_id, user_id):
-        """
-        .. ibkey::
-             Queries a user's stored authentication data to a given OCCO
-             backend (a.k.a.
-             :class:`~occo.resourcehandler.resourcehandler.ResourceHandler` instance).
-
-            :param str backend_id: The name of the OCCO backend.
-            :param str user_id: User id (duh).
-
-        .. todo:: Sphinx structural problem: it cannot solve the class reference
-            above. This seems to be a clue for the ibkeys problems...
-
-        """
-        return self.kvstore.query_item(
-            self.auth_data_key(backend_id, user_id))
+    def auth_data(self, section_name, instance_data):
+        auth_data_path = ib.configured_auth_data_path
+        node_props = dict()
+        for key in instance_data:
+            if not isinstance(instance_data[key],dict):
+                node_props[key] = instance_data[key]
+        all_auth_data = yaml_load_file(auth_data_path)
+        filter_list = all_auth_data.get(section_name, None)
+        if not filter_list:
+            raise KeyError('Section \'{0:s}\' not found in auth_data!'.format(section_name))
+        selected_auth_data = []
+        for filter in filter_list:
+            auth_data = filter.pop('auth_data')
+            if set(filter.items()).issubset(set(node_props.items())):
+                selected_auth_data.append(auth_data)
+        if len(selected_auth_data) > 1:
+            raise ValueError('Cannot determine authorization information: filters result more than one possible authorization section!')
+        if len(selected_auth_data) < 1:
+            raise ValueError('Cannot determine authorization information: filters result zero possible authorization section!')
+        return selected_auth_data[0]
 
     @ib.provides('backends')
     def target(self, backend_id):
