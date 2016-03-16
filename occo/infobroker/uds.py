@@ -203,7 +203,7 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
         auth_data_path = ib.configured_auth_data_path
         node_props = dict()
         for key in instance_data:
-            if not isinstance(instance_data[key],dict):
+            if type(instance_data[key]) not in [ dict, list ]:
                 node_props[key] = instance_data[key]
         all_auth_data = yaml_load_file(auth_data_path)
         filter_list = all_auth_data.get(section_name, None)
