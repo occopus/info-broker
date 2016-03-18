@@ -365,12 +365,8 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
         return cmlist
 
     def is_subdict(self,subdict=dict(),maindict=dict()):
-        log.info("SUBDICT: %s", subdict)
-        log.info("MAINDICT: %s", maindict)
-        result = all((k in maindict and maindict[k]==v)\
+        return all((k in maindict and maindict[k]==v)\
                     for k,v in subdict.iteritems())
-        log.info("RESULT: %s", result)
-        return result
 
     def get_filtered_definition_list(self, node_type,
                                      filter_keywords=dict()):
