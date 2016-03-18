@@ -155,14 +155,6 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
         """
         return 'infra:{0!s}:failed_nodes'.format(infra_id)
 
-    def target_key(self, backend_id):
-        """
-        WTF
-
-        .. todo:: No clue whay this does. See also :meth:`target`.
-        """
-        return 'backend:{0!s}'.format(backend_id)
-
     def node_def_key(self, node_type):
         """
         Creates a backend key referencing a node type's definition.
@@ -185,7 +177,7 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
             or list()
 
     @ib.provides('node.definition')
-    def nodedef(self, node_type, preselected_backend_ids=[],
+    def nodedef(self, node_type, filter_keywords=dict(),
                 strategy='random', **kwargs):
         """
         .. ibkey::
@@ -196,38 +188,23 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
                 :ref:`nodedescription`\ /``type``.
         """
         return self.get_one_definition(
-            node_type, preselected_backend_ids, strategy, **kwargs)
+            node_type, filter_keywords, strategy, **kwargs)
 
     @ib.provides('backends.auth_data')
     def auth_data(self, section_name, instance_data):
-        auth_data_path = ib.configured_auth_data_path
-        node_props = dict()
-        for key in instance_data:
-            if type(instance_data[key]) not in [ dict, list ]:
-                node_props[key] = instance_data[key]
-        all_auth_data = yaml_load_file(auth_data_path)
-        filter_list = all_auth_data.get(section_name, None)
+        filter_list = yaml_load_file(ib.configured_auth_data_path).get(section_name, None)
         if not filter_list:
-            raise KeyError('Section \'{0:s}\' not found in auth_data!'.format(section_name))
+            raise KeyError('Section \'{0:s}\' not found in auth_data specified in \'{1:s}\'!'.format(section_name,ib.configured_auth_data_path))
         selected_auth_data = []
         for filter in filter_list:
             auth_data = filter.pop('auth_data')
-            if set(filter.items()).issubset(set(node_props.items())):
+            if self.is_subdict(filter, instance_data):
                 selected_auth_data.append(auth_data)
         if len(selected_auth_data) > 1:
-            raise ValueError('Cannot determine authorization information: filters result more than one possible authorization section!')
+            raise ValueError('Cannot determine authorization information: auth_data filters result more than one possible authorization section!')
         if len(selected_auth_data) < 1:
-            raise ValueError('Cannot determine authorization information: filters result zero possible authorization section!')
+            raise ValueError('Cannot determine authorization information: auth_data filters result zero possible authorization section!')
         return selected_auth_data[0]
-
-    @ib.provides('backends')
-    def target(self, backend_id):
-        """ WTF
-
-        .. todo:: No clue what this does. See also :meth:`target_key`.
-        """
-        return self.kvstore.query_item(
-            self.target_key(backend_id))
 
     @ib.provides('infrastructure.static_description')
     @ensure_exists
@@ -358,15 +335,6 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
         nodes = self._filtered_infra(infra_id, name)
         return self._filter_by_nodeid(nodes, node_id)
 
-    def config_manager_key(self, sc_id):
-        """
-        Creates a backend key referencing a service composer's instance
-        information.
-
-        :param str sc_id: Identifier of the service composer instance.
-        """
-        return 'config_manager:{0}'.format(sc_id)
-
     @ib.provides('config_managers')
     def get_config_mangager_list(self, infra_id):
 	sd = self.get_static_description(infra_id)
@@ -374,10 +342,8 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
         for node in sd.nodes:
             nd = self.ib.get('node.definition',
                         node['type'],
-                        preselected_backend_ids=(
-                           node.get('selected_resource_handler')
-                           or node.get('selected_resource_handlers')),
-                           strategy=node.get('backend_selection_strategy', 'random'))
+                        filter_keywords = node.get('resource_filter'),
+                        strategy=node.get('backend_selection_strategy', 'random'))
             scinfo={}
             if (not 'config_management' in nd) or (not 'type' in nd['config_management']):
                 type = 'dummy'
@@ -398,41 +364,35 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
                 cmlist.append(cminfo)
         return cmlist
 
-    @ib.provides('config_manager.aux_data')
-    def get_config_manager_data(self, sc_id):
-        """
-        .. ibkey::
-             Queries information about a service composer instance. The
-             content of the information depends on the type of the
-             service composer.
-
-            :param str sc_id: The identifier of the service composer instance.
-        """
-        return self.kvstore.query_item(self.config_manager_key(sc_id), dict())
+    def is_subdict(self,subdict=dict(),maindict=dict()):
+        log.info("SUBDICT: %s", subdict)
+        log.info("MAINDICT: %s", maindict)
+        result = all((k in maindict and maindict[k]==v)\
+                    for k,v in subdict.iteritems())
+        log.info("RESULT: %s", result)
+        return result
 
     def get_filtered_definition_list(self, node_type,
-                                     preselected_backend_ids=[]):
+                                     filter_keywords=dict()):
         all_definitions = self.all_nodedef(node_type)
-        if preselected_backend_ids:
-            if isinstance(preselected_backend_ids, basestring):
-                preselected_backend_ids = [preselected_backend_ids]
+        if filter_keywords:
             all_definitions = (i for i in all_definitions
-                               if i['backend_id'] in preselected_backend_ids)
+                               if self.is_subdict(filter_keywords,i['resource']))
         return list(all_definitions)
 
-    def get_one_definition(self, node_type, preselected_backend_ids=[],
+    def get_one_definition(self, node_type, filter_keywords=dict(),
                            strategy='random', **kwargs):
         """
         Selects a single implementation from a node type's implementation set
         using a specific decision strategy.
         """
-        log.debug('Selecting a node definition for %r (backend_filter: %r) '
+        log.debug('Selecting a node definition for %r (filter: %r) '
                   'using strategy %r',
-                  node_type, preselected_backend_ids, strategy)
+                  node_type, filter_keywords, strategy)
         all_definitions = self.get_filtered_definition_list(
-            node_type, preselected_backend_ids)
+            node_type, filter_keywords)
         if not all_definitions:
-            raise NoMatchingNodeDefinition(None, preselected_backend_ids, node_type)
+            raise NoMatchingNodeDefinition(None, filter_keywords, node_type)
 
         selector = NodeDefinitionSelector.instantiate(
             protocol=strategy, **kwargs)
