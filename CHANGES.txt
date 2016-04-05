@@ -1,4 +1,12 @@
 
+v1.0 - April 2016
+- Rename cloudhandler to resourcehandler
+- Apply new descriptor format
+- New method: returns list of config managers
+- Apply new health_check format
+- Apply authorisation file format
+- Apply 'filter' keyword for node selection
+
 v0.2.0 - November 2015
 - Implement info provider
 - Implement info router
