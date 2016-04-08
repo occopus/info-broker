@@ -31,6 +31,7 @@ import occo.infobroker as ib
 from occo.infobroker.brokering import NodeDefinitionSelector
 from occo.infobroker.kvstore import KeyValueStore
 from occo.util import flatten
+from occo.util.config import yaml_load_file
 import logging, warnings
 import time, datetime
 from occo.exceptions.orchestration import NoMatchingNodeDefinition
@@ -154,25 +155,6 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
         """
         return 'infra:{0!s}:failed_nodes'.format(infra_id)
 
-    def auth_data_key(self, backend_id, user_id):
-        """
-        Creates a backend key referencing a user's stored authentication
-        data to a given OCCO backend (a.k.a.
-        :class:`~occo.cloudhandler.cloudhandler.CloudHandler` instance).
-
-        :param str backend_id: The name of the OCCO backend.
-        :param str user_id: User id (duh).
-        """
-        return 'auth:{0!s}:{1!s}'.format(backend_id, user_id)
-
-    def target_key(self, backend_id):
-        """
-        WTF
-
-        .. todo:: No clue whay this does. See also :meth:`target`.
-        """
-        return 'backend:{0!s}'.format(backend_id)
-
     def node_def_key(self, node_type):
         """
         Creates a backend key referencing a node type's definition.
@@ -195,7 +177,7 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
             or list()
 
     @ib.provides('node.definition')
-    def nodedef(self, node_type, preselected_backend_ids=[],
+    def nodedef(self, node_type, filter_keywords=dict(),
                 strategy='random', **kwargs):
         """
         .. ibkey::
@@ -206,34 +188,23 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
                 :ref:`nodedescription`\ /``type``.
         """
         return self.get_one_definition(
-            node_type, preselected_backend_ids, strategy, **kwargs)
+            node_type, filter_keywords, strategy, **kwargs)
 
     @ib.provides('backends.auth_data')
-    def auth_data(self, backend_id, user_id):
-        """
-        .. ibkey::
-             Queries a user's stored authentication data to a given OCCO
-             backend (a.k.a.
-             :class:`~occo.cloudhandler.cloudhandler.CloudHandler` instance).
-
-            :param str backend_id: The name of the OCCO backend.
-            :param str user_id: User id (duh).
-
-        .. todo:: Sphinx structural problem: it cannot solve the class reference
-            above. This seems to be a clue for the ibkeys problems...
-
-        """
-        return self.kvstore.query_item(
-            self.auth_data_key(backend_id, user_id))
-
-    @ib.provides('backends')
-    def target(self, backend_id):
-        """ WTF
-
-        .. todo:: No clue what this does. See also :meth:`target_key`.
-        """
-        return self.kvstore.query_item(
-            self.target_key(backend_id))
+    def auth_data(self, section_name, instance_data):
+        filter_list = yaml_load_file(ib.configured_auth_data_path).get(section_name, None)
+        if not filter_list:
+            raise KeyError('Section \'{0:s}\' not found in auth_data specified in \'{1:s}\'!'.format(section_name,ib.configured_auth_data_path))
+        selected_auth_data = []
+        for filter in filter_list:
+            auth_data = filter.pop('auth_data')
+            if self.is_subdict(filter, instance_data):
+                selected_auth_data.append(auth_data)
+        if len(selected_auth_data) > 1:
+            raise ValueError('Cannot determine authorization information: auth_data filters result more than one possible authorization section!')
+        if len(selected_auth_data) < 1:
+            raise ValueError('Cannot determine authorization information: auth_data filters result zero possible authorization section!')
+        return selected_auth_data[0]
 
     @ib.provides('infrastructure.static_description')
     @ensure_exists
@@ -364,50 +335,60 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
         nodes = self._filtered_infra(infra_id, name)
         return self._filter_by_nodeid(nodes, node_id)
 
-    def service_composer_key(self, sc_id):
-        """
-        Creates a backend key referencing a service composer's instance
-        information.
+    @ib.provides('config_managers')
+    def get_config_mangager_list(self, infra_id):
+	sd = self.get_static_description(infra_id)
+        cmlist=[]
+        for node in sd.nodes:
+            nd = self.ib.get('node.definition',
+                        node['type'],
+                        filter_keywords = node.get('resource_filter'),
+                        strategy=node.get('backend_selection_strategy', 'random'))
+            scinfo={}
+            if (not 'config_management' in nd) or (not 'type' in nd['config_management']):
+                type = 'dummy'
+            else:
+                type = nd['config_management']['type']
+            if (not 'config_management' in nd) or (not 'endpoint' in nd['config_management']):
+                endpoint = 'null'
+            else:
+                endpoint = nd['config_management']['endpoint']
+            found = False
+            for cm in cmlist:
+                if cm['type'] == type and cm['endpoint'] == endpoint:
+                    found = True
+            if not found:
+                cminfo=nd.get('config_management',dict())
+                cminfo['type']=type
+                cminfo['endpoint']=endpoint
+                cmlist.append(cminfo)
+        return cmlist
 
-        :param str sc_id: Identifier of the service composer instance.
-        """
-        return 'service_composer:{0}'.format(sc_id)
-
-    @ib.provides('service_composer.aux_data')
-    def get_service_composer_data(self, sc_id):
-        """
-        .. ibkey::
-             Queries information about a service composer instance. The
-             content of the information depends on the type of the
-             service composer.
-
-            :param str sc_id: The identifier of the service composer instance.
-        """
-        return self.kvstore.query_item(self.service_composer_key(sc_id), dict())
+    def is_subdict(self,subdict=dict(),maindict=dict()):
+        return all((k in maindict and maindict[k]==v)\
+                    for k,v in subdict.iteritems())
 
     def get_filtered_definition_list(self, node_type,
-                                     preselected_backend_ids=[]):
+                                     filter_keywords=dict()):
         all_definitions = self.all_nodedef(node_type)
-        if preselected_backend_ids:
-            if isinstance(preselected_backend_ids, basestring):
-                preselected_backend_ids = [preselected_backend_ids]
+        if filter_keywords:
             all_definitions = (i for i in all_definitions
-                               if i['backend_id'] in preselected_backend_ids)
+                               if self.is_subdict(filter_keywords,i['resource']))
         return list(all_definitions)
 
-    def get_one_definition(self, node_type, preselected_backend_ids=[],
+    def get_one_definition(self, node_type, filter_keywords=dict(),
                            strategy='random', **kwargs):
         """
         Selects a single implementation from a node type's implementation set
         using a specific decision strategy.
         """
-        log.debug('Selecting a node definition for %r (backend_filter: %r) '
+        log.debug('Selecting a node definition for %r (filter: %r) '
                   'using strategy %r',
-                  node_type, preselected_backend_ids, strategy)
+                  node_type, filter_keywords, strategy)
         all_definitions = self.get_filtered_definition_list(
-            node_type, preselected_backend_ids)
+            node_type, filter_keywords)
         if not all_definitions:
-            raise NoMatchingNodeDefinition(None, preselected_backend_ids, node_type)
+            raise NoMatchingNodeDefinition(None, filter_keywords, node_type)
 
         selector = NodeDefinitionSelector.instantiate(
             protocol=strategy, **kwargs)
