@@ -19,7 +19,7 @@ from pip.req import parse_requirements
 
 setuptools.setup(
     name='OCCO-InfoBroker',
-    version='1.1',
+    version='1.2',
     author='MTA SZTAKI',
     author_email='occopus@lpds.sztaki.hu',
     namespace_packages=['occo'],
