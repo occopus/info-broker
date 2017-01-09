@@ -1,3 +1,7 @@
+
+v1.3 - January 2017
+- Making auth info non-mandatory
+
 v1.2 - June 2016
 - No changes
 

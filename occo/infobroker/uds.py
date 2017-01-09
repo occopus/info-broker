@@ -194,7 +194,7 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
     def auth_data(self, section_name, instance_data):
         filter_list = yaml_load_file(ib.configured_auth_data_path).get(section_name, None)
         if not filter_list:
-            raise KeyError('Section \'{0:s}\' not found in auth_data specified in \'{1:s}\'!'.format(section_name,ib.configured_auth_data_path))
+            return None
         selected_auth_data = []
         for filter in filter_list:
             auth_data = filter.pop('auth_data')
@@ -203,7 +203,7 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
         if len(selected_auth_data) > 1:
             raise ValueError('Cannot determine authorization information: auth_data filters result more than one possible authorization section!')
         if len(selected_auth_data) < 1:
-            raise ValueError('Cannot determine authorization information: auth_data filters result zero possible authorization section!')
+            return None
         return selected_auth_data[0]
 
     @ib.provides('infrastructure.static_description')
