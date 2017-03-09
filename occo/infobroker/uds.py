@@ -528,7 +528,7 @@ class DictUDS(UDS):
         """
         Removes a node instance from an infrastructure's dynamic description.
         """
-        log.info('Removing node instances from %r: %r', infra_id, node_ids)
+        log.debug('Removing node instances from %r: %r', infra_id, node_ids)
         if not node_ids:
             return
 
@@ -630,7 +630,7 @@ class RedisUDS(UDS):
         """
         Removes node instance(s) from an infrastructure's dynamic description.
         """
-        log.info('Removing node instances from %r: %r', infra_id, node_ids)
+        log.debug('Removing node instances from %r: %r', infra_id, node_ids)
         if not node_ids:
             return
 
