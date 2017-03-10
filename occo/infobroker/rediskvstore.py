@@ -28,7 +28,7 @@ import occo.infobroker.kvstore as kvs
 import occo.exceptions as exc
 import occo.util.factory as factory
 import occo.util as util
-import yaml
+from ruamel import yaml
 import logging
 import redis
 
@@ -130,7 +130,7 @@ class RedisKVStore(kvs.KeyValueStore):
         log.debug('Querying %r', key)
         backend, key = self.transform_key(key)
         data = backend.get(key)
-        retval = self.deserialize(data) if data else None
+        retval = self.deserialize(data,Loader=yaml.Loader) if data else None
         return util.coalesce(retval, default)
 
     def set_item(self, key, value):

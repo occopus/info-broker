@@ -128,10 +128,10 @@ class BasicEventLog(EventLog):
     def __init__(self, logger_name='occo.eventlog', loglevel='info'):
         super(BasicEventLog, self).__init__()
         self.log_method = getattr(logging.getLogger(logger_name), loglevel)
-        import yaml # Pre-load
+        from ruamel import yaml # Pre-load
 
     def _raw_log_event(self, infra_id, event_name, timestamp, event_data):
-        import yaml
+        from ruamel import yaml
         self.log_method('%s ;; %s ;; %r ;; %s',
                         infra_id, event_name, timestamp, yaml.dump(event_data))
 
@@ -141,9 +141,9 @@ class BasicEventLog(EventLog):
         Utility method for testing: reconstructs event parameters from its text
         representations.
         """
-        import yaml
+        from ruamel import yaml
         parts = string.split(' ;; ')
-        return parts[0], parts[1], float(parts[2]), yaml.load(parts[3])
+        return parts[0], parts[1], float(parts[2]), yaml.load(parts[3],Loader=yaml.Loader)
 
 # Register default singleton instance
 BasicEventLog()

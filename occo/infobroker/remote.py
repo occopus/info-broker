@@ -40,7 +40,6 @@ __all__ = ['RemoteProviderStub', 'RemoteProviderSkeleton']
 
 import occo.infobroker as ib
 import occo.util.communication as comm
-import yaml
 import logging
 
 log = logging.getLogger('occo.infobroker.remote')

@@ -25,6 +25,7 @@ querying and manipulation primitives based on a key-value store. (Cf.
 
 __all__ = ['UDS']
 
+from ruamel import yaml
 import occo.exceptions as exc
 import occo.util.factory as factory
 import occo.infobroker as ib
@@ -580,7 +581,7 @@ class RedisUDS(UDS):
             infra_state[node_name] = dict()
             for node_id_key in backend.hkeys(key):
                 node_state = backend.hget(key,node_id_key)
-                infra_state[node_name][node_id_key] = self.kvstore.deserialize(node_state) if node_state else None
+                infra_state[node_name][node_id_key] = self.kvstore.deserialize(node_state,Loader=yaml.Loader) if node_state else None
         return infra_state
 
     def add_infrastructure(self, static_description):

@@ -29,7 +29,7 @@ __all__ = ['KeyValueStore', 'KeyValueStoreProvider', 'DictKVStore']
 import occo.infobroker as ib
 import occo.util as util
 import occo.util.factory as factory
-import yaml
+from ruamel import yaml
 import logging
 import threading
 import copy

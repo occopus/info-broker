@@ -40,7 +40,7 @@ from occo.exceptions import KeyNotFoundError, ArgumentError
 from inspect import getmembers
 from functools import wraps
 import itertools as it
-import yaml
+from ruamel import yaml
 import logging
 
 log = logging.getLogger('occo.infobroker')
