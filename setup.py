@@ -19,7 +19,7 @@ from pip.req import parse_requirements
 
 setuptools.setup(
     name='OCCO-InfoBroker',
-    version='1.3',
+    version='1.4',
     author='MTA SZTAKI',
     author_email='occopus@lpds.sztaki.hu',
     namespace_packages=['occo'],
@@ -33,7 +33,8 @@ setuptools.setup(
     install_requires=[
         'argparse',
         'python-dateutil',
-        'PyYAML',
+        'ruamel.yaml',
+        'ruamel.ordereddict',
         'redis',
         'OCCO-Util',
     ],
