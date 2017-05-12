@@ -36,6 +36,7 @@ from occo.util.config import yaml_load_file
 import logging, warnings
 import time, datetime
 from occo.exceptions.orchestration import NoMatchingNodeDefinition
+import getpass
 
 log = logging.getLogger('occo.infobroker.uds')
 
@@ -75,7 +76,7 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
 
         :param str infra_id: The internal key of the infrastructure.
         """
-        return 'infra:{0!s}'.format(infra_id)
+        return 'infra:{0!s}@{1!s}'.format(getpass.getuser(),infra_id)
 
     def infra_description_key(self, infra_id):
         """
@@ -84,7 +85,7 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
 
         :param str infra_id: The internal key of the infrastructure.
         """
-        return 'infra:{0!s}:description'.format(infra_id)
+        return 'infra:{0!s}@{1!s}:description'.format(getpass.getuser(),infra_id)
 
     def infra_state_key(self, infra_id):
         """
@@ -93,7 +94,7 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
 
         :param str infra_id: The internal key of the infrastructure.
         """
-        return 'infra:{0!s}:state'.format(infra_id)
+        return 'infra:{0!s}@{1!s}:state'.format(getpass.getuser(),infra_id)
 
     def infra_failtime_key(self, infra_id):
         """
@@ -102,7 +103,7 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
 
         :param str infra_id: The internal key of the infrastructure.
         """
-        return 'infra:{0!s}:failtime'.format(infra_id)
+        return 'infra:{0!s}@{1!s}:failtime'.format(getpass.getuser(),infra_id)
 
     def infra_scaling_key(self, infra_id):
         """
@@ -111,7 +112,7 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
 
         :param str infra_id: The internal key of the infrastructure.
         """
-        return 'infra:{0!s}:scaling'.format(infra_id)
+        return 'infra:{0!s}@{1!s}:scaling'.format(getpass.getuser(),infra_id)
 
     def node_scaling_target_count_subkey(self, node_name):
         """
@@ -145,7 +146,7 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
         :param str infra_id: The internal key of the infrastructure.
         :param str node_name: The internal key of the node name.
         """
-        return 'infra:{0!s}:state:{1!s}'.format(infra_id, node_name)
+        return 'infra:{0!s}@{1!s}:state:{2!s}'.format(getpass.getuser(),infra_id, node_name)
 
     def failed_nodes_key(self, infra_id):
         """
@@ -154,7 +155,7 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
 
         :param str infra_id: The internal key of the infrastructure.
         """
-        return 'infra:{0!s}:failed_nodes'.format(infra_id)
+        return 'infra:{0!s}@{1!s}:failed_nodes'.format(getpass.getuser(),infra_id)
 
     def node_def_key(self, node_type):
         """
@@ -163,7 +164,7 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
         :param str node_type: The identifier of the node's type (see
             :ref:`nodedescription`\ /``type``.
         """
-        return 'node_def:{0!s}'.format(node_type)
+        return 'node_def:{0!s}@{1!s}'.format(getpass.getuser(),node_type)
 
     @ib.provides('node.definition.all')
     def all_nodedef(self, node_type):
@@ -281,7 +282,7 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
     def _filtered_infra(self, infra_id, name):
         def cut_id(s):
             parts = s.split(':')
-            return parts[1]
+            return parts[1].split('@',1)[1]
 
         if infra_id:
             infra_ids = [infra_id]
@@ -291,7 +292,8 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
                           'inefficient operation (full DB sweep). Consider '
                           'specifying an infra_id too.',
                           UserWarning)
-            infra_ids = self.kvstore.enumerate('infra:*:state', cut_id)
+            infra_filter_str = 'infra:{0!s}@*:state'.format(getpass.getuser())
+            infra_ids = self.kvstore.enumerate(infra_filter_str, cut_id)
 
         return flatten(self._extract_nodes(i, name) for i in infra_ids)
 
