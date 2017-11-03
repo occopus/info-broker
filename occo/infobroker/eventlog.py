@@ -30,6 +30,8 @@ __all__ = ['EventLog', 'BasicEventLog']
 
 import occo.util.factory as factory
 import occo.infobroker as ib
+from occo.infobroker import main_uds
+from occo.infobroker.notifier.base import BaseNotifier
 import time
 import logging
 
@@ -74,6 +76,8 @@ class EventLog(factory.MultiBackend):
         eventobj = event_data or kwargs or dict()
         if timestamp is None:
             timestamp = self._create_timestamp()
+        notifier = BaseNotifier().create(main_uds.get_infrastructure_notification(infra_id))
+        notifier.send(event_name, timestamp, eventobj)
         return self._raw_log_event(infra_id, event_name, timestamp, eventobj)
 
     def _create_timestamp(self):
