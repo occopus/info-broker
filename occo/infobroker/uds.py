@@ -114,6 +114,15 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
         """
         return 'infra:{0!s}@{1!s}:scaling'.format(getpass.getuser(),infra_id)
 
+    def infra_notify_key(self, infra_id):
+        """
+        Creates a backend key referencing a specific infrastructure's
+        notification setup.
+
+        :param str infra_id: The internal key of the infrastructure.
+        """
+        return 'infra:{0!s}@{1!s}:notification'.format(getpass.getuser(),infra_id)
+
     def node_scaling_target_count_subkey(self, node_name):
         """
         Creates a backend key referencing a node's target count.
@@ -340,7 +349,7 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
 
     @ib.provides('config_managers')
     def get_config_mangager_list(self, infra_id):
-	sd = self.get_static_description(infra_id)
+        sd = self.get_static_description(infra_id)
         cmlist=[]
         for node in sd.nodes:
             nd = self.ib.get('node.definition',
@@ -444,6 +453,23 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
         sd = self.get_static_description(infra_id)
         sd.suspended = False
         self.update_infrastructure(sd)
+
+    def set_infrastructure_notification(self, infra_id, notification):
+        """
+        Set the notification data for an infrastructure.
+
+        :param str infra_id: The identifier of the infrastructure.
+        :param notification: The notification description
+        """
+        self.kvstore.set_item(self.infra_notify_key(infra_id), notification)
+
+    def get_infrastructure_notification(self, infra_id):
+        """
+        Return the notification data for an infrastructure.
+
+        :param str infra_id: The identifier of the infrastructure.
+        """
+        return self.kvstore.query_item(self.infra_notify_key(infra_id))
 
     def register_started_node(self, infra_id, node_name, instance_data):
         """
@@ -659,11 +685,11 @@ class RedisUDS(UDS):
         failed_nodes = self.kvstore.query_item(infra_key, dict())
         failed_nodes.update(dict((i['node_id'], i) for i in instance_datas))
         self.kvstore.set_item(infra_key, failed_nodes)
-    
+
     def get_failing_period(self, infra_id, node_id, is_failed):
         """
         Check if timeout has expired since node service health check
-        failed first. 
+        failed first.
         If is_failed TRUE:
             If time is stored:
                 queries and compares
@@ -729,7 +755,7 @@ class RedisUDS(UDS):
                   infra_id, node_name)
         infra_scaling_key = self.infra_scaling_key(infra_id)
         backend, key = self.kvstore.transform_key(infra_scaling_key)
-        for counter in range(count): 
+        for counter in range(count):
             key_id = str(uuid.uuid4())
             node_create_node_subkey = self.node_scaling_create_node_subkey(node_name, key_id)
             backend.hset(key, node_create_node_subkey, "")
@@ -795,8 +821,8 @@ class RedisUDS(UDS):
             node_create_node_subkey = self.node_scaling_create_node_subkey(node_name, key_id)
             backend.hdel(key, node_create_node_subkey)
         else:
-            raise NotImplementedError() 
-        
+            raise NotImplementedError()
+
 
     def del_scaling_destroynode(self, infra_id, node_name, key_id):
         """
@@ -810,9 +836,4 @@ class RedisUDS(UDS):
             node_destroy_node_subkey = self.node_scaling_destroy_node_subkey(node_name, key_id)
             backend.hdel(key, node_destroy_node_subkey)
         else:
-            raise NotImplementedError() 
-        
-
-
-
-
+            raise NotImplementedError()
