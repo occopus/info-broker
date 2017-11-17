@@ -105,7 +105,10 @@ class DynamicStateProvider(ib.InfoProvider):
 
         """
         log.debug('Checking infrastructure started %r', infra_id)
-        return self.sc.infrastructure_exists(infra_id)
+        instances = self.ib.get('infrastructure.node_instances',
+                                infra_id,
+                                True)
+        return ( len(instances) and self.sc.infrastructure_exists(infra_id) )
 
     @ib.provides('infrastructure.state')
     def infra_state(self, infra_id, allow_default=False):
