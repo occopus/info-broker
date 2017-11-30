@@ -88,6 +88,10 @@ class EventLog(factory.MultiBackend):
         """ Store event: Infrastructure created """
         self.log_event(infra_id, 'infrastart')
 
+    def infrastructure_updated(self, infra_id):
+        """ Store event: Infrastructure updated """
+        self.log_event(infra_id, 'infraupdated')
+
     def node_created(self, instance_data):
         """ Store event: Node created """
         self.log_event(
