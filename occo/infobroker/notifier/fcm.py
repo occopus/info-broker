@@ -12,6 +12,7 @@
 ### See the License for the specific language governing permissions and
 ### limitations under the License.
 
+import json
 import logging
 log = logging.getLogger('occo.infobroker.notifier.fcm')
 
@@ -30,12 +31,13 @@ class FCMNotifier(BaseNotifier):
         if self.reg_id is not None and self.push_service is not None:
             data = {
                 'event_name': event_name,
-                'timestamp': timestamp,
-                'payload': notification
+                'timestamp': int(timestamp),
+                'payload': json.dumps(notification)
             }
-            log.debug('Sending FCM notification: %s' % data)
+            log.debug('Sending FCM notification using api key %s and reg_id %s: %s' % (self.api_key, self.reg_id, data))
             result = self.push_service.notify_single_device(
                 registration_id=self.reg_id,
+                message_title='Occopus infrastructure status update event',
                 data_message=data)
             if result['success'] != 1:
                 log.warning('FCM notification failed, result is: %s' % result)
