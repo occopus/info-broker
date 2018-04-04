@@ -74,8 +74,9 @@ class EventLog(factory.MultiBackend):
                 '`event_data` and `kwargs` cannot be specified together.')
 
         eventobj = event_data or kwargs or dict()
+        eventobj['infra_id'] = infra_id
         if timestamp is None:
-            timestamp = self._create_timestamp()
+            timestamp = int(self._create_timestamp())
         notifier = BaseNotifier().create(main_uds.get_infrastructure_notification(infra_id))
         notifier.send(event_name, timestamp, eventobj)
         return self._raw_log_event(infra_id, event_name, timestamp, eventobj)
@@ -92,13 +93,33 @@ class EventLog(factory.MultiBackend):
         """ Store event: Infrastructure updated """
         self.log_event(infra_id, 'infraupdated')
 
+    def infrastructure_ready(self, infra_id):
+        """ Store event: Infrastructure is ready """
+        self.log_event(infra_id, 'infraready')
+
+    def node_creating(self, instance_data):
+        """ Store event: Node creation started """
+        infra_id = instance_data['infra_id']
+        node_name = instance_data['node_description']['name']
+        scaling_target_count = main_uds.get_scaling_target_count(infra_id, node_name)
+        self.log_event(
+            infra_id,
+            'nodecreating',
+            node_id=instance_data['node_id'],
+            node_name=node_name,
+            scaling_target_count = 1 if scaling_target_count is None else scaling_target_count,
+        )
+
     def node_created(self, instance_data):
         """ Store event: Node created """
+        infra_id = instance_data['infra_id']
+        node_name = instance_data['node_description']['name']
         self.log_event(
-            instance_data['infra_id'],
-            'nodestart',
+            infra_id,
+            'nodecreated',
             endpoint=instance_data['resource']['endpoint'],
             node_id=instance_data['node_id'],
+            node_name=node_name,
         )
 
     def node_failed(self, instance_data):
@@ -108,15 +129,27 @@ class EventLog(factory.MultiBackend):
             'nodefailed',
             endpoint=instance_data['resource']['endpoint'],
             node_id=instance_data['node_id'],
+            node_name=instance_data['node_description']['name'],
+        )
+
+    def node_deleting(self, instance_data):
+        """ Store event: Node deletion started """
+        self.log_event(
+            instance_data['infra_id'],
+            'nodedropping',
+            endpoint=instance_data['resource']['endpoint'],
+            node_id=instance_data['node_id'],
+            node_name=instance_data['node_description']['name'],
         )
 
     def node_deleted(self, instance_data):
         """ Store event: Node deleted """
         self.log_event(
             instance_data['infra_id'],
-            'nodedrop',
+            'nodedropped',
             endpoint=instance_data['resource']['endpoint'],
             node_id=instance_data['node_id'],
+            node_name=instance_data['node_description']['name'],
         )
 
     def infrastructure_deleted(self, infra_id):

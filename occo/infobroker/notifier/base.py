@@ -20,6 +20,7 @@ log = logging.getLogger('occo.infobroker.notifier')
 
 class BaseNotifier:
     def send(self, event_name, timestamp, notification):
+        log.debug('Sending notification: event name "%s", timestamp "%s", notification "%s"' % (event_name, timestamp, notification))
         pass
 
     def create(self, notify_info):
