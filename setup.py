@@ -15,7 +15,6 @@
 
 import setuptools
 import os, sys
-from pip.req import parse_requirements
 
 setuptools.setup(
     name='OCCO-InfoBroker',
