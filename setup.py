@@ -18,11 +18,14 @@ import os, sys
 
 setuptools.setup(
     name='OCCO-InfoBroker',
-    version='1.5',
+    version='1.6',
     author='MTA SZTAKI',
     author_email='occopus@lpds.sztaki.hu',
     namespace_packages=['occo'],
     packages=['occo.infobroker'],
+    py_modules=[
+        'occo.infobroker.notifier.base',
+        'occo.infobroker.notifier.fcm'],
     scripts=[],
     data_files=[],
     url='https://github.com/occopus',
@@ -36,5 +39,6 @@ setuptools.setup(
         'ruamel.ordereddict',
         'redis',
         'OCCO-Util',
+        'pyfcm'
     ],
 )
