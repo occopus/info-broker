@@ -772,6 +772,7 @@ class RedisUDS(UDS):
         node_destroy_node_subkey = self.node_scaling_destroy_node_subkey(node_name, key_id)
         backend, key = self.kvstore.transform_key(infra_scaling_key)
         backend.hset(key, node_destroy_node_subkey, node_id if node_id else "")
+        return key_id
 
     def get_scaling_createnode(self, infra_id, node_name):
         """
