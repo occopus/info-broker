@@ -141,7 +141,7 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
 
     def node_scaling_destroy_node_subkey(self, node_name, node_id):
         """
-        Creates a backend key referencing a request for creating a new node.
+        Creates a backend key referencing a request for destroying a node.
 
         :param str node_name: The name of the node.
         """
