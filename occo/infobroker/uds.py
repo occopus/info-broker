@@ -113,6 +113,9 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
         """
         return 'infra:{0!s}@{1!s}:scaling'.format(getpass.getuser(),infra_id)
 
+    def infra_first_maint_key(self, infra_id):
+        return 'infra:{0!s}@{1!s}:first_maint'.format(getpass.getuser(),infra_id)
+
     def infra_notify_key(self, infra_id):
         """
         Creates a backend key referencing a specific infrastructure's
@@ -228,6 +231,11 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
         """
         return self.kvstore.query_item(
             self.infra_description_key(infra_id))
+
+    @ib.provides('infrastructure.finished_first_maintenance')
+    def get_first_maint(self, infra_id):
+        return self.kvstore._contains_key(
+            self.infra_first_maint_key(infra_id))
 
     @ib.provides('infrastructure.name')
     def infra_name(self, infra_id):
@@ -425,6 +433,10 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
         infrastructure from the key-value store backend.
         """
         raise NotImplementedError()
+
+    def finished_first_maintenance(self, infra_id):
+        self.kvstore.set_item(
+            self.infra_first_maint_key(infra_id), True)
 
     def suspend_infrastructure(self, infra_id, reason):
         """
