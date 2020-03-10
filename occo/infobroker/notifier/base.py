@@ -26,11 +26,11 @@ class BaseNotifier:
     def create(self, notify_info):
         try:
             notify_dict = json.loads(notify_info)
-        except Exception, e:
+        except Exception as e:
             return self
         n_type = notify_dict.get('type', None)
         if n_type == 'fcm':
-            from fcm import FCMNotifier
+            from .fcm import FCMNotifier
             return FCMNotifier(notify_dict.get(n_type, []))
         else:
             log.warning('Unknown notification type: %s' % n_type)

@@ -36,7 +36,6 @@ setuptools.setup(
         'argparse',
         'python-dateutil',
         'ruamel.yaml',
-        'ruamel.ordereddict',
         'redis',
         'OCCO-Util',
         'pyfcm'

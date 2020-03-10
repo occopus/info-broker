@@ -63,11 +63,11 @@ class RKVSTest(unittest.TestCase):
         self.assertEqual(k.db, 15)
         self.assertEqual(k.key, self.uuid)
         self.store.set_item(altkey, 'korte')
-        self.assertTrue(self.store.has_key(altkey))
+        self.assertTrue(altkey in self.store)
     def test_listing(self):
         tr = lambda x: x+x
         self.store=kvs.KeyValueStore.instantiate(**self.data)
-        for k, v in {'x_tst_alma':'korte', 'x_tst_medve':'durva', 'x_tst_elme':'ize'}.iteritems():
+        for k, v in {'x_tst_alma':'korte', 'x_tst_medve':'durva', 'x_tst_elme':'ize'}.items():
             self.store.set_item(k, v)
         self.assertEqual(
             set(self.store.listkeys(pattern='x_tst_*e*', transform=tr)),
@@ -76,7 +76,7 @@ class RKVSTest(unittest.TestCase):
         tr = lambda x: x+x
         pat = lambda x: x.startswith('x_tst_') and 'e' in x
         self.store=kvs.KeyValueStore.instantiate(**self.data)
-        for k, v in {'x_tst_alma':'korte', 'x_tst_medve':'durva', 'x_tst_elme':'ize'}.iteritems():
+        for k, v in {'x_tst_alma':'korte', 'x_tst_medve':'durva', 'x_tst_elme':'ize'}.items():
             self.store.set_item(k, v)
         keys = self.store.listkeys(pattern=pat, transform=tr)
         self.assertEqual(

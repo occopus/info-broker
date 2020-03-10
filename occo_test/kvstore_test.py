@@ -13,7 +13,7 @@
 ### limitations under the License.
 
 import unittest
-from common import *
+from .common import *
 import occo.util as util
 import occo.exceptions as exc
 import occo.util.config as config
@@ -43,7 +43,7 @@ class KVSTest(unittest.TestCase):
     def test_dict_haskey_1(self):
         p = kvs.KeyValueStore.instantiate(protocol='dict')
         p.set_item('alma', 'korte')
-        self.assertTrue(p.has_key('alma'))
+        self.assertTrue('alma' in p)
     def test_dict_set_2(self):
         p = kvs.KeyValueStore.instantiate(protocol='dict')
         p['alma'] = 'korte'
