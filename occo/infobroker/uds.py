@@ -616,7 +616,7 @@ class RedisUDS(UDS):
         backend, pattern = self.kvstore.transform_key(node_state_pattern)
         infra_state = dict()
         for key in backend.keys(pattern):
-            node_name = key.decode().split(':')[-1]
+            node_name = key.split(':')[-1]
             infra_state[node_name] = dict()
             for node_id_key in backend.hkeys(key):
                 node_state = backend.hget(key,node_id_key)
@@ -677,7 +677,7 @@ class RedisUDS(UDS):
         node_state_pattern = self.node_state_key(infra_id, "*")
         backend, pattern = self.kvstore.transform_key(node_state_pattern)
         for key in backend.keys(pattern):
-            node_name = key.decode().split(':')[-1]
+            node_name = key.split(':')[-1]
             for node_id_key in backend.hkeys(key):
                 if node_id_key in node_ids:
                     backend.hdel(key,node_id_key)

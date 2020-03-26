@@ -57,7 +57,7 @@ class RedisConnectionPools:
         pools = RedisConnectionPools.connection_pools
         if not rcd in pools:
             pools[rcd] = redis.ConnectionPool(
-                host=rcd.host, port=rcd.port, db=rcd.db)
+                host=rcd.host, port=rcd.port, db=rcd.db, decode_responses=True)
         return pools[rcd]
 
 class DBSelectorKey(object):
