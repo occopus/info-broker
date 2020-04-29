@@ -51,8 +51,7 @@ def ensure_exists(fun):
             if result is None:
                 raise exc.KeyNotFoundError('Unknown infrastructure', *args)
         except KeyError:
-            raise exc.KeyNotFoundError('Unknown infrastructure', *args), \
-                None, sys.exc_info()[2]
+            raise exc.KeyNotFoundError('Unknown infrastructure', *args).with_traceback(sys.exc_info()[2])
         else:
             return result
 
@@ -114,6 +113,9 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
         """
         return 'infra:{0!s}@{1!s}:scaling'.format(getpass.getuser(),infra_id)
 
+    def infra_first_maint_key(self, infra_id):
+        return 'infra:{0!s}@{1!s}:first_maint'.format(getpass.getuser(),infra_id)
+
     def infra_notify_key(self, infra_id):
         """
         Creates a backend key referencing a specific infrastructure's
@@ -141,7 +143,7 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
 
     def node_scaling_destroy_node_subkey(self, node_name, node_id):
         """
-        Creates a backend key referencing a request for creating a new node.
+        Creates a backend key referencing a request for destroying a node.
 
         :param str node_name: The name of the node.
         """
@@ -230,6 +232,11 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
         return self.kvstore.query_item(
             self.infra_description_key(infra_id))
 
+    @ib.provides('infrastructure.finished_first_maintenance')
+    def get_first_maint(self, infra_id):
+        return self.kvstore._contains_key(
+            self.infra_first_maint_key(infra_id))
+
     @ib.provides('infrastructure.name')
     def infra_name(self, infra_id):
         """
@@ -281,12 +288,12 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
     def _extract_nodes(self, infra_id, name):
         infrastate = self.get_infrastructure_state(infra_id)
         if name:
-            return infrastate[name].itervalues() \
+            return iter(list(infrastate[name].values())) \
                 if name in infrastate \
                 else []
         else:
-            return flatten(i.itervalues()
-                           for i in infrastate.itervalues())
+            return flatten(iter(list(i.values()))
+                           for i in list(infrastate.values()))
 
     def _filtered_infra(self, infra_id, name):
         def cut_id(s):
@@ -378,7 +385,7 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
 
     def is_subdict(self,subdict=dict(),maindict=dict()):
         return all((k in maindict and maindict[k]==v)\
-                    for k,v in subdict.iteritems())
+                    for k,v in list(subdict.items()))
 
     def get_filtered_definition_list(self, node_type,
                                      filter_keywords=dict()):
@@ -426,6 +433,10 @@ class UDS(ib.InfoProvider, factory.MultiBackend):
         infrastructure from the key-value store backend.
         """
         raise NotImplementedError()
+
+    def finished_first_maintenance(self, infra_id):
+        self.kvstore.set_item(
+            self.infra_first_maint_key(infra_id), True)
 
     def suspend_infrastructure(self, infra_id, reason):
         """
@@ -564,7 +575,7 @@ class DictUDS(UDS):
         infra_key = self.infra_state_key(infra_id)
         infra_state = self.get_infrastructure_state(infra_id)
         lookup = dict((node_id, node_name)
-                      for node_name, instlist in infra_state.iteritems()
+                      for node_name, instlist in list(infra_state.items())
                       for node_id in instlist)
         for i in node_ids:
             try:
@@ -772,6 +783,7 @@ class RedisUDS(UDS):
         node_destroy_node_subkey = self.node_scaling_destroy_node_subkey(node_name, key_id)
         backend, key = self.kvstore.transform_key(infra_scaling_key)
         backend.hset(key, node_destroy_node_subkey, node_id if node_id else "")
+        return key_id
 
     def get_scaling_createnode(self, infra_id, node_name):
         """
@@ -804,7 +816,7 @@ class RedisUDS(UDS):
                 return dict()
         pattern = self.node_scaling_destroy_node_subkey(node_name, "")
         retdict = dict()
-        for item,value in fulllist.iteritems():
+        for item,value in list(fulllist.items()):
             if item.startswith(pattern):
                 retdict.update( { item[len(pattern):] : value } )
         return retdict

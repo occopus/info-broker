@@ -14,7 +14,7 @@
 
 import unittest
 import occo.util as util
-from common import *
+from .common import *
 import yaml
 
 class ProviderLoadTest(unittest.TestCase):
@@ -28,5 +28,5 @@ class ProviderLoadTest(unittest.TestCase):
 class ProviderLoadTestSuite(unittest.TestSuite):
     def __init__(self):
         unittest.TestSuite.__init__(
-            self, map(ProviderLoadTest, ['test_load'])),
+            self, list(map(ProviderLoadTest, ['test_load']))),
 

@@ -68,8 +68,8 @@ class DynamicStateProvider(ib.InfoProvider):
             if sv_state != status.READY:
                 afp = main_uds.get_failing_period(instance_data['infra_id'],instance_data['node_id'],True)
                 timeout = instance_data.get('resolved_node_definition',dict()).get('health_check',dict()).get('timeout',600)
-		log.warning('Service on node %r/%r is down for %.3f seconds! (Timeout for restart: %is)', 
-				instance_data.get('resolved_node_definition',dict()).get('name'),instance_data['node_id'], afp, timeout)
+                log.warning('Service on node %r/%r is down for %.3f seconds! (Timeout for restart: %is)',
+                    instance_data.get('resolved_node_definition',dict()).get('name'),instance_data['node_id'], afp, timeout)
                 if afp > timeout:
                     sv_state = status.FAIL
             else:
@@ -78,7 +78,7 @@ class DynamicStateProvider(ib.InfoProvider):
             sv_state = status.UNKNOWN
         log.debug('Node states are {0!r}:{1!r}:{2!r}'.format(ch_state, sc_state,
             sv_state))
-        
+
         if ch_state == status.READY and sc_state == status.READY and sv_state == status.READY:
             return status.READY
         elif ch_state == status.FAIL or sc_state == status.FAIL or sv_state == status.FAIL:
@@ -130,8 +130,8 @@ class DynamicStateProvider(ib.InfoProvider):
                                 infra_id,
                                 allow_default)
         log.debug('Gathering states of nodes in infrastructure %r', infra_id)
-        for node in instances.itervalues():
-            for instance in node.itervalues():
+        for node in list(instances.values()):
+            for instance in list(node.values()):
                 instance['state'] = self.ib.get('node.state', instance)
                 instance['resource_address'] = self.ib.get('node.resource.address',instance)
         return instances

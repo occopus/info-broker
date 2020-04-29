@@ -278,7 +278,7 @@ class InfoProvider(object):
     @property
     def iterkeys(self):
         """An iterator of the keys that can be handled by this instance."""
-        return self.__class__.providers.iterkeys()
+        return iter(self.__class__.providers.keys())
     @property
     def keys(self):
         """A list of keys that can be handled by this instance."""

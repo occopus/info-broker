@@ -16,7 +16,7 @@ import json
 import logging
 log = logging.getLogger('occo.infobroker.notifier.fcm')
 
-from base import BaseNotifier
+from .base import BaseNotifier
 
 from pyfcm import FCMNotification
 

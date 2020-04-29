@@ -67,7 +67,7 @@ Example
     print provider.get("global.hello") # <- This will call ...
 """
 
-from provider import *
+from .provider import *
 from occo.exceptions import ConfigurationError
 
 def proxy_for(real_object_name, object_name):

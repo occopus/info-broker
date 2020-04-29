@@ -14,7 +14,7 @@
 import occo.infobroker.eventlog as el
 import occo.infobroker as ib
 import occo.util as util
-import StringIO as sio
+import io as sio
 import unittest
 import logging
 
@@ -38,7 +38,7 @@ class EventLogTest(unittest.TestCase):
         elog.log_event(infra_id, 'testevent', event_data=event)
         result = self.stream.getvalue()
 
-        print result
+        print(result)
         res_infra_id, event_name, timestamp, data = \
             el.BasicEventLog._parse_event_string(result)
         self.assertEqual(infra_id, res_infra_id)
@@ -52,14 +52,14 @@ class EventLogTest(unittest.TestCase):
         elog.log_event(infra_id, 'testevent', a=1, b=2, timestamp=0)
         result = self.stream.getvalue()
 
-        print result
+        print(result)
         res_infra_id, event_name, timestamp, data = \
             el.BasicEventLog._parse_event_string(result)
         self.assertEqual(infra_id, res_infra_id)
         self.assertEqual(event_name, 'testevent')
         self.assertIn('a', data)
         self.assertIn('b', data)
-        self.assertEquals(timestamp, 0)
+        self.assertEqual(timestamp, 0)
 
     def test_convenience_functions(self):
         infra_id = 'asdfghjk'
@@ -75,7 +75,7 @@ class EventLogTest(unittest.TestCase):
             import re
             return (x.group(0) for x in re.finditer(r"^.*$", s, re.MULTILINE))
 
-        print result
+        print(result)
         for i in lines(result):
             if i:
                 res_infra_id, event_name, timestamp, data = \

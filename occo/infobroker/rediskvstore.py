@@ -57,7 +57,7 @@ class RedisConnectionPools:
         pools = RedisConnectionPools.connection_pools
         if not rcd in pools:
             pools[rcd] = redis.ConnectionPool(
-                host=rcd.host, port=rcd.port, db=rcd.db)
+                host=rcd.host, port=rcd.port, db=rcd.db, decode_responses=True)
         return pools[rcd]
 
 class DBSelectorKey(object):
@@ -109,7 +109,7 @@ class RedisKVStore(kvs.KeyValueStore):
         super(RedisKVStore, self).__init__(**kwargs)
         self.host, self.port, self.default_db = host, port, db
         self.altdbs = util.coalesce(altdbs, dict())
-        self.inverse_altdbs = dict((v, k) for k, v in self.altdbs.iteritems())
+        self.inverse_altdbs = dict((v, k) for k, v in list(self.altdbs.items()))
         if len(self.altdbs) != len(self.inverse_altdbs):
             raise exc.ConfigurationError('The specified altdbs is not a bijection',
                                          self.altdbs)
@@ -148,7 +148,7 @@ class RedisKVStore(kvs.KeyValueStore):
         if callable(pattern):
             import itertools as it
             backend, _ = self.transform_key('')
-            return it.ifilter(pattern, backend.keys())
+            return it.ifilter(pattern, list(backend.keys()))
         else:
             backend, pattern = self.transform_key(pattern)
             return [self.inverse_transform(backend, key)

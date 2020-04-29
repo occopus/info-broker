@@ -15,7 +15,7 @@ import occo.infobroker.eventlog as el
 import occo.infobroker as ib
 import occo.util as util
 import occo.util.factory as factory
-import StringIO as sio
+import io as sio
 import unittest
 import logging
 import occo.infobroker.userinfo as ui

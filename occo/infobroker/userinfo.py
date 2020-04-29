@@ -34,7 +34,7 @@ class UserInfoStrategy(factory.MultiBackend):
     @classmethod
     def instantiate(cls, static_description):
         spec = static_description.userinfo_strategy or 'basic'
-        if isinstance(spec, basestring):
+        if isinstance(spec, str):
             spec = dict(protocol=spec)
         log.debug('Instantiating UserInfoStrategy: %r', spec)
         return super(UserInfoStrategy, cls).instantiate(**spec)
@@ -47,8 +47,12 @@ class BasicUserInfo(UserInfoStrategy):
     def get_user_info(self, infra_id):
         infobroker = ib.main_info_broker
         state = infobroker.get('infrastructure.state', infra_id)
+        
+        def singlenra(inst):
+          nra = infobroker.get('node.resource.address', inst)
+          return nra[0] if isinstance(nra,list) else nra
 
-        get_address = lambda inst: infobroker.get('node.resource.address', inst)
+        get_address = lambda inst: singlenra(inst)
         instance_infos = lambda instances: dict_map(instances, get_address)
         userinfo = dict_map(state, instance_infos)
 

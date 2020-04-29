@@ -13,7 +13,7 @@
 ### limitations under the License.
 
 import unittest
-from common import *
+from .common import *
 
 class BasicProviderTest(unittest.TestCase):
     def setUp(self):
@@ -63,4 +63,4 @@ class RouterTest(unittest.TestCase):
     def test_main_info_broker(self):
         import occo.infobroker as ib
         p = ib.main_info_broker
-        self.assertIs(p.get.im_func, self.provider.get.im_func)
+        self.assertIs(p.get.__func__, self.provider.get.__func__)

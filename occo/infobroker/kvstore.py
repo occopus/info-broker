@@ -92,7 +92,7 @@ class KeyValueStore(factory.MultiBackend):
 
     def __contains__(self, key):
         """ Convenience alias to :meth:`has_key`. """
-        return self.has_key(key)
+        return key in self
 
     def _enumerate(self, pattern, **kwargs):
         raise NotImplementedError()
@@ -161,11 +161,11 @@ class DictKVStore(KeyValueStore):
     def _enumerate(self, pattern, **kwargs):
         log.debug('Listing keys against pattern %r', pattern)
         if callable(pattern):
-            return (k for k in self.backend.iterkeys()
+            return (k for k in self.backend.keys()
                     if pattern(k))
         else:
             from fnmatch import fnmatch
-            return (k for k in self.backend.iterkeys()
+            return (k for k in self.backend.keys()
                     if fnmatch(k, pattern))
     
     def delete_key(self, key):
@@ -195,7 +195,7 @@ class KeyValueStoreProvider(ib.InfoProvider):
             return self.backend.query_item(key)
 
     def can_get(self, key):
-        return self._can_immediately_get(key) or self.backend.has_key(key)
+        return self._can_immediately_get(key) or key in self.backend
 
     @property
     def iterkeys(self):
