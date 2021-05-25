@@ -18,8 +18,8 @@ import os, sys
 
 setuptools.setup(
     name='OCCO-InfoBroker',
-    version='1.8',
-    author='MTA SZTAKI',
+    version='1.9',
+    author='SZTAKI',
     author_email='occopus@lpds.sztaki.hu',
     namespace_packages=['occo'],
     packages=['occo.infobroker'],
