@@ -18,7 +18,7 @@ import os, sys
 
 setuptools.setup(
     name='OCCO-InfoBroker',
-    version='1.9',
+    version='1.10',
     author='SZTAKI',
     author_email='occopus@lpds.sztaki.hu',
     namespace_packages=['occo'],
