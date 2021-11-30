@@ -10,4 +10,5 @@ if [ ! -d wheelhouse ]; then
     fi
 fi
 
-scp wheelhouse/OCCO?InfoBroker*.whl ubuntu@192.168.155.11:/opt/packages
+scp wheelhouse/OCCO?InfoBroker*.whl ubuntu@10.1.14.86:/tmp
+ssh ubuntu@10.1.14.86 sudo cp /tmp/OCCO?InfoBroker*.whl /mnt/pypi/packages
